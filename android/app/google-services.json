@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "676972381757",
+    "project_id": "sajadah-app",
+    "storage_bucket": "sajadah-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:676972381757:android:e274ae6748d95a4e3c0c54",
+        "android_client_info": {
+          "package_name": "com.example.sajadah"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbtTR8PFNFTyuwFivJKyWJOlWDwd-hDgg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
