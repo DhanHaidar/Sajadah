@@ -4,6 +4,7 @@ class EventEntity {
   final String? speaker;
   final DateTime dateTime;
   final String location;
+  final String? imageUrl;
 
   EventEntity({
     required this.title,
@@ -11,5 +12,6 @@ class EventEntity {
     this.speaker,
     required this.dateTime,
     required this.location,
+    this.imageUrl,
   });
 }

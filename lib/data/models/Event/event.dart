@@ -7,6 +7,7 @@ class EventModel {
   final String? speaker;
   final DateTime dateTime;
   final String location;
+  final String? imageUrl;
 
   EventModel({
     required this.title,
@@ -14,6 +15,7 @@ class EventModel {
     this.speaker,
     required this.dateTime,
     required this.location,
+    this.imageUrl,
   });
 
   factory EventModel.fromJson(Map<String, dynamic> data) {
@@ -56,6 +58,7 @@ class EventModel {
       dateTime: parsedDate,
       location:
           (data['location'] as String?) ?? (data['lokasi'] as String?) ?? '',
+      imageUrl: (data['imageUrl'] as String?) ?? (data['image'] as String?),
     );
   }
 
@@ -66,6 +69,7 @@ class EventModel {
       'speaker': speaker,
       'waktu': Timestamp.fromDate(dateTime),
       'location': location,
+      'imageUrl': imageUrl,
     };
   }
 }
@@ -78,6 +82,7 @@ extension EventModelX on EventModel {
       speaker: speaker,
       dateTime: dateTime,
       location: location,
+      imageUrl: imageUrl,
     );
   }
 }
