@@ -7,6 +7,9 @@ import 'package:sajadah/data/models/auth/signin_user_req.dart';
 abstract class AuthFirebaseService {
   Future<Either> signup(CreateUserReq createUserReq);
   Future<Either> signin(SigninUserReq signinUserReq);
+  // New methods to get current user info
+  Future<Either> getCurrentUser();
+  Stream<DocumentSnapshot> getCurrentUserStream();
 }
 
 class AuthFirebaseServiceImpl extends AuthFirebaseService {
@@ -61,5 +64,47 @@ class AuthFirebaseServiceImpl extends AuthFirebaseService {
 
       // Handle authentication errors
     }
+  }
+
+  // New methods to get current user info
+
+  @override
+  Future<Either> getCurrentUser() async {
+    try {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        return Left("No user logged in");
+      }
+
+      //ambil data user dari Firestore berdasarkan UID dari FirebaseAuth
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(currentUser.uid)
+          .get();
+      //ambil data user dari Firestore berdasarkan UID dari FirebaseAuth
+
+      if (!userDoc.exists) {
+        return Left("User data not found");
+      }
+
+      return Right(userDoc.data());
+    } catch (e) {
+      return Left("Error fetching user: $e");
+    }
+  }
+
+  // Stream to listen for real-time updates to the current user's data
+
+  @override
+  Stream<DocumentSnapshot> getCurrentUserStream() {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      return Stream.error("No user logged in");
+    }
+
+    return FirebaseFirestore.instance
+        .collection('Users')
+        .doc(currentUser.uid)
+        .snapshots();
   }
 }

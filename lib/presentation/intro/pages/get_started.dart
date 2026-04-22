@@ -7,6 +7,7 @@ import 'package:sajadah/common/widgets/button/basic_app_button.dart';
 import 'package:sajadah/core/configs/assets/app_images.dart';
 import 'package:sajadah/core/configs/assets/app_vector.dart';
 import 'package:sajadah/presentation/auth/pages/signup.dart';
+import 'package:sajadah/presentation/dashboard/pages/dashboard.dart';
 import 'package:sajadah/presentation/intro/bloc/them_cubit.dart';
 
 class GetStartedPage extends StatelessWidget {

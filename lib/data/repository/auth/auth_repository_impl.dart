@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:sajadah/data/models/auth/create_user_auth.dart';
 import 'package:sajadah/data/models/auth/signin_user_req.dart';
@@ -14,5 +15,17 @@ class AuthRepositoryImpl extends AuthRepository {
   @override
   Future<Either> signup(CreateUserReq createUserReq) async {
     return await sl<AuthFirebaseService>().signup(createUserReq);
+  }
+
+  // New methods to get current user info
+
+  @override
+  Future<Either> getCurrentUser() async {
+    return await sl<AuthFirebaseService>().getCurrentUser();
+  }
+
+  @override
+  Stream<DocumentSnapshot> getCurrentUserStream() {
+    return sl<AuthFirebaseService>().getCurrentUserStream();
   }
 }

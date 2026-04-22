@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sajadah/core/configs/theme/app_theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sajadah/firebase_options.dart';
 import 'package:sajadah/presentation/intro/bloc/them_cubit.dart';
 
@@ -19,6 +20,10 @@ Future<void> main() async {
         : HydratedStorageDirectory((await getTemporaryDirectory()).path),
   );
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Sign in anonymously so Firestore rules requiring auth won't block reads during development.
+  try {
+    await FirebaseAuth.instance.signInAnonymously();
+  } catch (_) {}
   await intializeDependencies();
   runApp(MainApp());
 }

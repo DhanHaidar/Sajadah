@@ -1,86 +1,72 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:sajadah/common/widgets/appbar/main_appbar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sajadah/data/repository/auth/auth_repository_impl.dart';
+import 'package:sajadah/domain/repository/auth/auth.dart';
+import 'package:sajadah/presentation/dashboard/widgets/news_events.dart';
+import 'package:sajadah/service_locator.dart';
 
 class Dashboard extends StatelessWidget {
-  Dashboard({super.key});
-  final List<String> prayerTimes = [
-    "Subuh: 04:30",
-    "Dzuhur: 12:00",
-    "Ashar: 15:30",
-    "Maghrib: 18:00",
-    "Isya: 19:30",
-  ];
+  const Dashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: MainAppbar(title: const Text('Dashboard')),
+      appBar: AppBar(title: const Text("Dashboard")),
+
+      // Display user info using StreamBuilder to listen to real-time updates
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 8.0),
-          child: Column(children: [_homeTopCard()]),
-        ),
-      ),
-    );
-  }
+        scrollDirection: Axis.vertical,
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: Colors.blueAccent,
+              child: StreamBuilder<DocumentSnapshot>(
+                stream: sl<AuthRepository>().getCurrentUserStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  }
 
-  Widget _homeTopCard() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Container(
-          height: 140,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 46, 194, 78),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Builder(
-                  builder: (context) {
-                    final user = FirebaseAuth.instance.currentUser;
-                    final greetingName =
-                        (user != null &&
-                            user.displayName != null &&
-                            user.displayName!.isNotEmpty)
-                        ? user.displayName!
-                        : 'Pengguna';
-                    return Text('Assalamualaikum $greetingName');
-                  },
-                ),
-                SizedBox(height: 10),
-                Text("Selamat datang kembali"),
-                SizedBox(height: 10),
-                _prayerTimeCard(),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+                  if (snapshot.hasError) {
+                    return Text("Error: ${snapshot.error}");
+                  }
 
-  Widget _prayerTimeCard() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: prayerTimes.map((time) {
-          return Container(
-            margin: const EdgeInsets.only(right: 8.0),
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
-            decoration: BoxDecoration(
-              color: Color.fromRGBO(255, 255, 255, 0.15),
-              borderRadius: BorderRadius.circular(8),
+                  if (!snapshot.hasData || !snapshot.data!.exists) {
+                    return const Text("User data not found");
+                  }
+
+                  var userData = snapshot.data!.data() as Map<String, dynamic>;
+                  String userName = userData['name'] ?? 'User';
+                  String userEmail = userData['email'] ?? '';
+
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Selamat datang, $userName!",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        userEmail,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
-            child: Text(time, style: const TextStyle(color: Colors.white)),
-          );
-        }).toList(),
+            const SizedBox(height: 20),
+            const NewsEventsWidget(maxItems: 2),
+          ],
+        ),
       ),
     );
   }
