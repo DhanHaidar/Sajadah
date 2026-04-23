@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sajadah/domain/entities/event/event.dart';
 
 class EventModel {
+  final String? id;
   final String title;
   final String deskripsi;
   final String? speaker;
@@ -10,6 +11,7 @@ class EventModel {
   final String? imageUrl;
 
   EventModel({
+    this.id,
     required this.title,
     required this.deskripsi,
     this.speaker,
@@ -18,7 +20,7 @@ class EventModel {
     this.imageUrl,
   });
 
-  factory EventModel.fromJson(Map<String, dynamic> data) {
+  factory EventModel.fromJson(Map<String, dynamic> data, {String? docId}) {
     // Firestore often stores timestamps under custom keys (here: 'waktu').
     final dynamic waktu =
         data['waktu'] ??
@@ -43,6 +45,7 @@ class EventModel {
     }
 
     return EventModel(
+      id: docId,
       title:
           (data['title'] as String?) ??
           (data['judul'] as String?) ??
@@ -77,6 +80,7 @@ class EventModel {
 extension EventModelX on EventModel {
   EventEntity toEntity() {
     return EventEntity(
+      id: id,
       title: title,
       deskripsi: deskripsi,
       speaker: speaker,

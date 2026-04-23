@@ -17,6 +17,8 @@ dependencies:
   path_provider:  
   firebase_core: 
   firebase_auth:
+  supabase_flutter:
+  image_picker:
   get_it: 
   dartz: 
   cloud_firestore: 
