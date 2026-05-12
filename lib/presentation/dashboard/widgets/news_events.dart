@@ -1,55 +1,87 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sajadah/domain/entities/event/event.dart';
+import 'package:sajadah/data/models/Event/event.dart';
 import 'package:sajadah/domain/usecases/event/get_news_events.dart';
+import 'package:sajadah/presentation/dashboard/pages/dashboard.dart';
 import 'package:sajadah/presentation/events/pages/event_page.dart';
+import 'package:sajadah/presentation/events/pages/event_detail_page.dart';
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/domain/usecases/event/get_events_by_masjid.dart';
+
+// Optional: if `masjidId` is provided, this widget shows events for that masjid's subcollection.
 
 /// Widget untuk menampilkan list kegiatan/event
 class NewsEventsWidget extends StatelessWidget {
   final int? maxItems;
+  final String? masjidId;
 
-  const NewsEventsWidget({super.key, this.maxItems});
+  const NewsEventsWidget({super.key, this.maxItems, this.masjidId});
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Either>(
-      future: sl<GetNewsEventsUseCase>().call(),
+    // Build a Firestore stream so UI updates in realtime when events change.
+    final Stream<QuerySnapshot<Map<String, dynamic>>> stream = masjidId == null
+        ? FirebaseFirestore.instance
+              .collectionGroup('Kegiatan')
+              .orderBy('waktu', descending: true)
+              .snapshots()
+        : FirebaseFirestore.instance
+              .collection('Masjid')
+              .doc(masjidId)
+              .collection('Kegiatan')
+              .orderBy('waktu', descending: true)
+              .snapshots();
+
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: stream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}"));
+          return Center(child: Text('Error: ${snapshot.error}'));
         }
 
-        if (!snapshot.hasData) {
-          return const Center(child: Text("Tidak ada data kegiatan"));
+        final docs = snapshot.data?.docs ?? [];
+
+        if (docs.isEmpty) {
+          return const Center(child: Text('Tidak ada data kegiatan'));
         }
 
-        return snapshot.data!.fold(
-          (error) => Center(child: Text("Error: $error")),
-          (events) {
-            List<EventEntity> eventList = events as List<EventEntity>;
+        List<EventEntity> eventList = docs.map((doc) {
+          final data = doc.data();
+          String? derivedMasjidId;
+          try {
+            derivedMasjidId = doc.reference.parent.parent?.id;
+          } catch (_) {
+            derivedMasjidId = null;
+          }
 
-            // Batasi jumlah items jika maxItems diberikan
-            if (maxItems != null && eventList.length > maxItems!) {
-              eventList = eventList.sublist(0, maxItems);
-            }
+          final model = EventModel.fromJson(
+            data,
+            docId: doc.id,
+            masjidId: derivedMasjidId,
+          );
+          return model.toEntity();
+        }).toList();
 
-            return SizedBox(
-              height: 230, // Set tinggi untuk horizontal scroll
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal, // ← Scroll horizontal
-                itemCount: eventList.length,
-                itemBuilder: (context, index) {
-                  var event = eventList[index];
-                  return EventCard(event: event);
-                },
-              ),
-            );
-          },
+        if (maxItems != null && eventList.length > maxItems!) {
+          eventList = eventList.sublist(0, maxItems);
+        }
+
+        return SizedBox(
+          height: 230,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: eventList.length,
+            itemBuilder: (context, index) {
+              final event = eventList[index];
+              return EventCard(event: event);
+            },
+          ),
         );
       },
     );
@@ -68,7 +100,9 @@ class EventCard extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (BuildContext context) => EventsPage()),
+          MaterialPageRoute(
+            builder: (BuildContext context) => EventDetailPage(event: event),
+          ),
         );
       },
       child: SizedBox(
@@ -107,15 +141,15 @@ class EventCard extends StatelessWidget {
                 // const SizedBox(height: 8),
 
                 // Speaker
-                if (event.speaker != null) ...[
-                  Text(
-                    "Pembicara: ${event.speaker}",
-                    style: const TextStyle(fontSize: 11),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                ],
+                // if (event.speaker != null) ...[
+                //   Text(
+                //     "Pembicara: ${event.speaker}",
+                //     style: const TextStyle(fontSize: 11),
+                //     maxLines: 1,
+                //     overflow: TextOverflow.ellipsis,
+                //   ),
+                //   const SizedBox(height: 4),
+                // ],
 
                 // Waktu
                 Row(
@@ -169,24 +203,36 @@ class EventImage extends StatelessWidget {
         topLeft: Radius.circular(8),
         topRight: Radius.circular(8),
       ),
-      child: Image.network(
-        event.imageUrl!,
-        height: 120,
-        width: double.infinity,
-        fit: BoxFit.cover,
-        loadingBuilder: (context, child, progress) {
-          if (progress == null) return child;
-          return Container(
+      child: Builder(
+        builder: (context) {
+          final raw = event.imageUrl!;
+          String safeUrl;
+          try {
+            safeUrl = Uri.parse(raw).toString();
+          } catch (_) {
+            safeUrl = raw.replaceAll(' ', '%20');
+          }
+
+          return Image.network(
+            safeUrl,
             height: 120,
-            color: Colors.grey[200],
-            child: const Center(child: CircularProgressIndicator()),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            height: 120,
-            color: Colors.grey[300],
-            child: const Icon(Icons.image_not_supported),
+            width: double.infinity,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, progress) {
+              if (progress == null) return child;
+              return Container(
+                height: 120,
+                color: Colors.grey[200],
+                child: const Center(child: CircularProgressIndicator()),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                height: 120,
+                color: Colors.grey[300],
+                child: const Icon(Icons.image_not_supported),
+              );
+            },
           );
         },
       ),

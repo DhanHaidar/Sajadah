@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:sajadah/domain/entities/event/event.dart';
 import 'package:sajadah/domain/usecases/event/get_news_events.dart';
+import 'package:sajadah/domain/usecases/event/get_events_by_masjid.dart';
 import 'package:sajadah/presentation/events/pages/event_create_page.dart';
+import 'package:sajadah/presentation/events/pages/event_detail_page.dart';
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/domain/usecases/masjid/get_news_masjid.dart';
+import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 
 class EventsPage extends StatefulWidget {
-  const EventsPage({super.key});
+  final String? masjidId;
+
+  const EventsPage({super.key, this.masjidId});
 
   @override
   State<EventsPage> createState() => _EventsPageState();
@@ -25,8 +31,22 @@ class _EventsPageState extends State<EventsPage> {
   }
 
   Future<List<EventEntity>> _getEvents() async {
+    if (widget.masjidId != null) {
+      final result = await sl<GetEventsByMasjidUseCase>().call(
+        params: GetEventsByMasjidParams(masjidId: widget.masjidId!),
+      );
+      return result.fold((error) {
+        if (!mounted) return [];
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $error')));
+        return [];
+      }, (events) => events as List<EventEntity>);
+    }
+
     final result = await sl<GetNewsEventsUseCase>().call();
     return result.fold((error) {
+      if (!mounted) return [];
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: $error')));
@@ -34,162 +54,323 @@ class _EventsPageState extends State<EventsPage> {
     }, (events) => events as List<EventEntity>);
   }
 
+  Future<void> _onCreatePressed() async {
+    // If this page was opened for a specific masjid, create directly for it
+    if (widget.masjidId != null) {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => EventCreatePage(masjidId: widget.masjidId),
+        ),
+      );
+
+      if (result == true) {
+        setState(() {
+          _loadEvents();
+        });
+      }
+
+      return;
+    }
+
+    // Otherwise fallback to selecting a masjid like before
+    final res = await sl<GetNewsMasjidsUseCase>().call();
+    final masjidList = res.fold((error) {
+      if (!mounted) return <MasjidEntity>[];
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal mengambil masjid: $error')));
+      return <MasjidEntity>[];
+    }, (data) => data as List<MasjidEntity>);
+
+    if (masjidList.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Belum ada masjid. Tambahkan masjid terlebih dahulu.'),
+        ),
+      );
+      return;
+    }
+
+    final chosen = await showDialog<MasjidEntity?>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Pilih Masjid'),
+        children: masjidList
+            .map(
+              (m) => SimpleDialogOption(
+                onPressed: () => Navigator.pop(context, m),
+                child: Text(m.title),
+              ),
+            )
+            .toList(),
+      ),
+    );
+
+    if (chosen == null) return;
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EventCreatePage(masjidId: chosen.id),
+      ),
+    );
+
+    if (result == true) {
+      setState(() {
+        _loadEvents();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Events')),
-      body: FutureBuilder<List<EventEntity>>(
-        future: _eventsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      appBar: AppBar(title: const Text('Event')),
+      body: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            // Search/filter/add row
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Cari Event',
+                      prefixIcon: const Icon(Icons.search),
+                      filled: true,
+                      fillColor: Colors.grey.shade100,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  height: 44,
+                  width: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.filter_list),
+                    onPressed: () {},
+                    tooltip: 'Filter',
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: _onCreatePressed,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
+                    child: const Icon(Icons.add, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+            // Event list
+            Expanded(
+              child: FutureBuilder<List<EventEntity>>(
+                future: _eventsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-          final events = snapshot.data ?? [];
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
 
-          if (events.isEmpty) {
-            return const Center(child: Text('Tidak ada event saat ini'));
-          }
+                  final events = snapshot.data ?? [];
 
-          return ListView.builder(
-            itemCount: events.length,
-            itemBuilder: (context, index) {
-              final event = events[index];
-              return _buildEventCard(event);
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const EventCreatePage()),
-          );
+                  if (events.isEmpty) {
+                    return const Center(
+                      child: Text('Tidak ada event saat ini'),
+                    );
+                  }
 
-          if (result == true) {
-            setState(() {
-              _loadEvents();
-            });
-          }
-        },
-        child: const Icon(Icons.add),
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: events.length,
+                    itemBuilder: (context, index) {
+                      final event = events[index];
+                      return _buildEventCard(event);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildEventCard(EventEntity event) {
-    return Card(
-      margin: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image
-          if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
-            SizedBox(
-              height: 200,
-              width: double.infinity,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(4),
-                  topRight: Radius.circular(4),
-                ),
-                child: Image.network(
-                  event.imageUrl!,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      color: Colors.grey[300],
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                              : null,
-                        ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[300],
-                      child: const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.image_not_supported, size: 40),
-                            SizedBox(height: 8),
-                            Text(
-                              'Gambar tidak tersedia',
-                              style: TextStyle(fontSize: 12),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EventDetailPage(event: event),
+          ),
+        );
+      },
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        clipBehavior: Clip.antiAlias,
+        elevation: 2,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image (top)
+            if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
+              SizedBox(
+                height: 180,
+                width: double.infinity,
+                child: Builder(
+                  builder: (context) {
+                    final raw = event.imageUrl!;
+                    String safeUrl;
+                    try {
+                      safeUrl = Uri.parse(raw).toString();
+                    } catch (_) {
+                      safeUrl = raw.replaceAll(' ', '%20');
+                    }
+
+                    return Image.network(
+                      safeUrl,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          color: Colors.grey[300],
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                  : null,
                             ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[300],
+                          child: const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.image_not_supported, size: 40),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Gambar tidak tersedia',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     );
                   },
+                ),
+              )
+            else
+              Container(
+                height: 180,
+                width: double.infinity,
+                color: Colors.grey[300],
+                child: const Center(
+                  child: Icon(Icons.image, size: 40, color: Colors.grey),
                 ),
               ),
-            )
-          else
+
+            // Grey info panel
             Container(
-              height: 200,
               width: double.infinity,
               color: Colors.grey[200],
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.image, size: 40, color: Colors.grey),
-                    SizedBox(height: 8),
-                    Text(
-                      'Tidak ada gambar',
-                      style: TextStyle(color: Colors.grey),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: 14,
+                        color: Colors.grey[700],
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${event.dateTime.day} ${_monthName(event.dateTime.month)} ${event.dateTime.year}',
+                        style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 14,
+                        color: Colors.grey[700],
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          event.location,
+                          style: TextStyle(
+                            color: Colors.grey[700],
+                            fontSize: 13,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  event.title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  event.deskripsi,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 12),
-                _buildInfoRow(Icons.location_on, event.location),
-                const SizedBox(height: 8),
-                _buildInfoRow(
-                  Icons.calendar_today,
-                  '${event.dateTime.day}/${event.dateTime.month}/${event.dateTime.year} ${event.dateTime.hour}:${event.dateTime.minute.toString().padLeft(2, '0')}',
-                ),
-                if (event.speaker != null) ...[
-                  const SizedBox(height: 8),
-                  _buildInfoRow(Icons.person, event.speaker!),
-                ],
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -209,5 +390,24 @@ class _EventsPageState extends State<EventsPage> {
         ),
       ],
     );
+  }
+
+  String _monthName(int month) {
+    const months = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
+    if (month < 1 || month > 12) return '';
+    return months[month - 1];
   }
 }

@@ -1,5 +1,6 @@
 class EventEntity {
   final String? id;
+  final String? masjidId;
   final String title;
   final String deskripsi;
   final String? speaker;
@@ -9,6 +10,7 @@ class EventEntity {
 
   EventEntity({
     this.id,
+    this.masjidId,
     required this.title,
     required this.deskripsi,
     this.speaker,

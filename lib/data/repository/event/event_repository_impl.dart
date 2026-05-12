@@ -18,8 +18,26 @@ class EventRepositoryImpl extends EventRepository {
   }
 
   @override
+  Future<Either> getEventsByMasjid(String masjidId) async {
+    return await sl<EventFirebaseService>().getEventsByMasjid(masjidId);
+  }
+
+  @override
   Future<Either> createEvent(EventModel event, {File? imageFile}) async {
     return await sl<EventFirebaseService>().createEvent(
+      event,
+      imageFile: imageFile,
+    );
+  }
+
+  @override
+  Future<Either> createEventForMasjid(
+    String masjidId,
+    EventModel event, {
+    File? imageFile,
+  }) async {
+    return await sl<EventFirebaseService>().createEventForMasjid(
+      masjidId,
       event,
       imageFile: imageFile,
     );

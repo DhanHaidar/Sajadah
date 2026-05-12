@@ -6,7 +6,8 @@ import 'package:sajadah/core/configs/assets/app_images.dart';
 import 'package:sajadah/data/models/auth/signin_user_req.dart';
 import 'package:sajadah/domain/usecases/auth/signin.dart';
 import 'package:sajadah/presentation/auth/pages/signup.dart';
-import 'package:sajadah/presentation/dashboard/pages/dashboard.dart';
+import 'package:sajadah/common/widgets/bottom_nav_bar.dart';
+import 'package:sajadah/presentation/masjid/pages/masjid_pages.dart';
 import 'package:sajadah/service_locator.dart';
 
 class SigninPage extends StatelessWidget {
@@ -62,7 +63,7 @@ class SigninPage extends StatelessWidget {
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                          builder: (BuildContext context) => Dashboard(),
+                          builder: (BuildContext context) => MasjidPages(),
                         ),
                         (route) => false,
                       );
@@ -96,18 +97,18 @@ class SigninPage extends StatelessWidget {
   Widget _emailField(BuildContext context) {
     return TextField(
       controller: _email,
-      decoration: InputDecoration(
-        hintText: 'Enter Email',
-      ).applyDefaults(Theme.of(context).inputDecorationTheme),
+      decoration: InputDecoration(hintText: 'Enter Email'),
+      style: TextStyle(color: Colors.white),
+      //.applyDefaults(Theme.of(context).inputDecorationTheme),
     );
   }
 
   Widget _passwordField(BuildContext context) {
     return TextField(
       controller: _password,
-      decoration: InputDecoration(
-        hintText: 'Enter Password',
-      ).applyDefaults(Theme.of(context).inputDecorationTheme),
+      decoration: InputDecoration(hintText: 'Enter Password'),
+      style: TextStyle(color: Colors.white),
+      //.applyDefaults(Theme.of(context).inputDecorationTheme),
     );
   }
 

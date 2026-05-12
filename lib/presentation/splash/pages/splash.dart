@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sajadah/core/configs/assets/app_vector.dart';
+import 'package:sajadah/presentation/dashboard/pages/dashboard.dart';
 import 'package:sajadah/presentation/intro/pages/get_started.dart';
+import 'package:sajadah/presentation/masjid/pages/masjid_pages.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -26,9 +28,7 @@ class _SplashPageState extends State<SplashPage> {
     await Future.delayed(const Duration(seconds: 3));
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (BuildContext context) => const GetStartedPage(),
-      ),
+      MaterialPageRoute(builder: (BuildContext context) => const GetStartedPage()),
     );
   }
 }

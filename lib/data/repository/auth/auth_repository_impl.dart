@@ -17,7 +17,6 @@ class AuthRepositoryImpl extends AuthRepository {
     return await sl<AuthFirebaseService>().signup(createUserReq);
   }
 
-  // New methods to get current user info
 
   @override
   Future<Either> getCurrentUser() async {
