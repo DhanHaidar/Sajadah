@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sajadah/core/configs/theme/app_theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sajadah/firebase_options.dart';
+import 'package:sajadah/presentation/donasi/pages/donasi_page.dart';
 import 'package:sajadah/presentation/intro/bloc/them_cubit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -47,7 +48,8 @@ class MainApp extends StatelessWidget {
           themeMode: mode,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
-          home: const SplashPage(),
+          home: const DonasiPage(),
+          // home: const SplashPage(),
         ),
       ),
     );
