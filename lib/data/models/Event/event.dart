@@ -7,6 +7,7 @@ class EventModel {
   final String title;
   final String deskripsi;
   final String? speaker;
+  final String? kategori;
   final DateTime dateTime;
   final String location;
   final String? imageUrl;
@@ -17,6 +18,7 @@ class EventModel {
     required this.title,
     required this.deskripsi,
     this.speaker,
+    this.kategori,
     required this.dateTime,
     required this.location,
     this.imageUrl,
@@ -27,7 +29,6 @@ class EventModel {
     String? docId,
     String? masjidId,
   }) {
-    
     final dynamic waktu =
         data['waktu'] ??
         data['dateTime'] ??
@@ -65,6 +66,7 @@ class EventModel {
           (data['desc'] as String?) ??
           '',
       speaker: (data['speaker'] as String?),
+      kategori: (data['kategori'] as String?) ?? (data['category'] as String?),
       dateTime: parsedDate,
       location:
           (data['location'] as String?) ?? (data['lokasi'] as String?) ?? '',
@@ -77,6 +79,7 @@ class EventModel {
       'title': title,
       'deskripsi': deskripsi,
       'speaker': speaker,
+      if (kategori != null) 'kategori': kategori,
       'waktu': Timestamp.fromDate(dateTime),
       'location': location,
       'imageUrl': imageUrl,
@@ -92,6 +95,7 @@ extension EventModelX on EventModel {
       masjidId: masjidId,
       title: title,
       deskripsi: deskripsi,
+      kategori: kategori,
       speaker: speaker,
       dateTime: dateTime,
       location: location,

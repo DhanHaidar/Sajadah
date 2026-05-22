@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sajadah/data/models/Event/event.dart';
+import 'package:sajadah/common/enums/kategori_event.dart';
 import 'package:sajadah/domain/usecases/event/create_event.dart';
 import 'package:sajadah/domain/usecases/event/create_event_for_masjid.dart';
 import 'package:sajadah/service_locator.dart';
@@ -25,6 +26,7 @@ class _EventCreatePageState extends State<EventCreatePage> {
 
   File? _imageFile;
   DateTime? _selectedDateTime;
+  KategoriEvent? _selectedKategori = KategoriEvent.agama;
   bool _isLoading = false;
 
   // Membuka galeri, lalu menyimpan file yang dipilih ke state untuk preview lokal
@@ -113,6 +115,7 @@ class _EventCreatePageState extends State<EventCreatePage> {
         speaker: _speakerController.text.isNotEmpty
             ? _speakerController.text
             : null,
+        kategori: _selectedKategori?.value,
         dateTime: _selectedDateTime!,
         location: _locationController.text,
       );
@@ -310,6 +313,32 @@ class _EventCreatePageState extends State<EventCreatePage> {
               enabled: !_isLoading,
               decoration: InputDecoration(
                 hintText: 'Masukkan nama pembicara',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Kategori event
+            const Text(
+              'Kategori Event',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<KategoriEvent>(
+              value: _selectedKategori,
+              items: KategoriEvent.values
+                  .map((k) => DropdownMenuItem(value: k, child: Text(k.label)))
+                  .toList(),
+              onChanged: _isLoading
+                  ? null
+                  : (v) {
+                      setState(() {
+                        _selectedKategori = v;
+                      });
+                    },
+              decoration: InputDecoration(
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),

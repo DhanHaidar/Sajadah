@@ -73,7 +73,7 @@ class NewsEventsWidget extends StatelessWidget {
         }
 
         return SizedBox(
-          height: 230,
+          height: 240,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: eventList.length,

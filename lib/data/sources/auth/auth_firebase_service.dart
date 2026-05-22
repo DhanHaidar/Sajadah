@@ -50,6 +50,8 @@ class AuthFirebaseServiceImpl extends AuthFirebaseService {
         'name': createUserReq.fullName,
         'email': data.user?.email,
         'uid': data.user?.uid,
+        'role': createUserReq.role ?? 'user',
+        'createdAt': FieldValue.serverTimestamp(),
       });
       return Right("Signup was successful");
     } on FirebaseAuthException catch (e) {

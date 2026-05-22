@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:sajadah/domain/entities/jamaah/jamaah.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 import 'package:sajadah/domain/usecases/jamaah/get_jamaah.dart';
 import 'package:sajadah/service_locator.dart';
 import 'package:sajadah/presentation/jamaah/pages/jamaah_manage_page.dart';
 import 'package:sajadah/common/widgets/app_drawer.dart';
+import 'package:sajadah/common/enums/kategori_jamaah.dart';
 
 class JamaahPage extends StatefulWidget {
   final String? masjidId;
@@ -177,41 +179,173 @@ class _JamaahPageState extends State<JamaahPage> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Statistik Kartu
-                  Row(
-                    children: [
-                      Expanded(child: _buildStatCard('Laki Laki', lakiLaki)),
-                      const SizedBox(width: 12),
-                      Expanded(child: _buildStatCard('Perempuan', perempuan)),
-                      const SizedBox(width: 12),
-                      Expanded(child: _buildStatCard('Total', total)),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+                  // Statistik Kartu (sinkron dengan Firestore)
+                  Builder(
+                    builder: (context) {
+                      final masjidId = widget.masjidId ?? widget.masjid?.id;
+                      if (masjidId == null) {
+                        // Fallback: gunakan perhitungan lokal jika masjidId tidak tersedia
+                        return Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildStatCard('Laki Laki', lakiLaki),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildStatCard('Perempuan', perempuan),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(child: _buildStatCard('Total', total)),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Menampilkan ${filteredJamaahs.length} dari $total jama\'ah',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    // TODO: Implement export
+                                  },
+                                  icon: const Icon(Icons.download),
+                                  label: const Text('Export'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      }
 
-                  // Info dan Export
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Menampilkan ${filteredJamaahs.length} dari $total jama\'ah',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          // TODO: Implement export
+                      return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                        stream: FirebaseFirestore.instance
+                            .collection('Masjid')
+                            .doc(masjidId)
+                            .collection('Jamaah')
+                            .snapshots(),
+                        builder: (context, snap) {
+                          if (snap.connectionState == ConnectionState.waiting) {
+                            return Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildStatCard(
+                                        'Laki Laki',
+                                        lakiLaki,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _buildStatCard(
+                                        'Perempuan',
+                                        perempuan,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _buildStatCard('Total', total),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                            );
+                          }
+
+                          if (!snap.hasData) {
+                            return const SizedBox.shrink();
+                          }
+
+                          final docs = snap.data!.docs;
+                          int laki = 0;
+                          int perempuanCount = 0;
+                          for (final d in docs) {
+                            final data = d.data();
+                            String jk =
+                                (data['jenisKelamin'] ??
+                                        data['jenis_kelamin'] ??
+                                        '')
+                                    .toString()
+                                    .toLowerCase();
+                            // normalize: remove non-letters, then check keywords
+                            final norm = jk.replaceAll(RegExp(r'[^a-z]'), '');
+                            if (norm.contains('laki')) {
+                              laki++;
+                            } else if (norm.contains('perempuan')) {
+                              perempuanCount++;
+                            }
+                          }
+
+                          final totalCount = docs.length;
+
+                          return Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildStatCard('Laki Laki', laki),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildStatCard(
+                                      'Perempuan',
+                                      perempuanCount,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildStatCard('Total', totalCount),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Menampilkan ${filteredJamaahs.length} dari $totalCount jama\'ah',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      // TODO: Implement export
+                                    },
+                                    icon: const Icon(Icons.download),
+                                    label: const Text('Export'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.green,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
                         },
-                        icon: const Icon(Icons.download),
-                        label: const Text('Export'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 12),
 
@@ -225,7 +359,7 @@ class _JamaahPageState extends State<JamaahPage> {
                     child: Row(
                       children: [
                         Expanded(
-                          flex: 2,
+                          flex: 1,
                           child: Text(
                             'Nama',
                             style: TextStyle(
@@ -272,9 +406,15 @@ class _JamaahPageState extends State<JamaahPage> {
                       ),
                       child: Row(
                         children: [
-                          Expanded(flex: 2, child: Text(j.name)),
+                          Expanded(flex: 1, child: Text(j.name)),
                           Expanded(flex: 1, child: Text(j.jenisKelamin)),
-                          Expanded(flex: 1, child: Text(j.kategori)),
+                          Expanded(
+                            flex: 1,
+                            child: Text(
+                              KategoriJamaahX.fromString(j.kategori)?.label ??
+                                  j.kategori,
+                            ),
+                          ),
                         ],
                       ),
                     );

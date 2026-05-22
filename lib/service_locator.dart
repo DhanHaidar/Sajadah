@@ -26,6 +26,8 @@ import 'package:sajadah/domain/usecases/event/get_events_by_masjid.dart';
 import 'package:sajadah/domain/usecases/event/create_event_for_masjid.dart';
 import 'package:sajadah/domain/usecases/jamaah/create_jamaah.dart';
 import 'package:sajadah/domain/usecases/jamaah/get_jamaah.dart';
+import 'package:sajadah/domain/usecases/jamaah/update_jamaah.dart';
+import 'package:sajadah/domain/usecases/jamaah/delete_jamaah.dart';
 import 'package:sajadah/domain/usecases/masjid/create_masjid.dart';
 import 'package:sajadah/domain/usecases/masjid/get_news_masjid.dart'; // Import untuk Payment
 import 'package:sajadah/domain/usecases/payment/create_payment.dart';
@@ -44,8 +46,9 @@ Future<void> intializeDependencies() async {
   sl.registerSingleton<EventRepository>(EventRepositoryImpl());
   sl.registerSingleton<MasjidRepository>(MasjidRepositoryImpl());
   sl.registerSingleton<JamaahRepository>(JamaahRepositoryImpl());
-  sl.registerSingleton<PaymentRepository>(PaymentRepositoryImpl(remoteSource: sl()));
-  sl.registerSingleton<CheckPaymentStatusUseCase>(CheckPaymentStatusUseCase(sl()));
+  sl.registerSingleton<PaymentRepository>(
+    PaymentRepositoryImpl(remoteSource: sl()),
+  );
 
   sl.registerSingleton<SignupUseCase>(SignupUseCase());
   sl.registerSingleton<SigninUseCase>(SigninUseCase());
@@ -56,10 +59,14 @@ Future<void> intializeDependencies() async {
     CreateEventForMasjidUseCase(),
   );
   sl.registerSingleton<GetJamaahsByMasjidUseCase>(GetJamaahsByMasjidUseCase());
+  sl.registerSingleton<UpdateJamaahUseCase>(UpdateJamaahUseCase());
+  sl.registerSingleton<DeleteJamaahUseCase>(DeleteJamaahUseCase());
 
   sl.registerSingleton<GetNewsMasjidsUseCase>(GetNewsMasjidsUseCase());
   sl.registerSingleton<CreateMasjidUseCase>(CreateMasjidUseCase());
   sl.registerSingleton<CreateJamaahUseCase>(CreateJamaahUseCase());
-  sl.registerSingleton<CheckPaymentStatusUseCase>(CheckPaymentStatusUseCase(sl()));
+  sl.registerSingleton<CheckPaymentStatusUseCase>(
+    CheckPaymentStatusUseCase(sl()),
+  );
   sl.registerSingleton<CreatePaymentUseCase>(CreatePaymentUseCase(sl()));
 }

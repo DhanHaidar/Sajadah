@@ -48,7 +48,7 @@ class MainApp extends StatelessWidget {
           themeMode: mode,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
-          home: const DonasiPage(),
+          home: const SplashPage(),
           // home: const SplashPage(),
         ),
       ),

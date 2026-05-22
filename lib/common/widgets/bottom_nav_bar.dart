@@ -34,7 +34,7 @@ class _AppBottomNavState extends State<AppBottomNav> {
       Dashboard(masjid: widget.masjid),
       EventsPage(masjidId: widget.masjid?.id, masjid: widget.masjid),
       JamaahPage(masjidId: widget.masjid?.id, masjid: widget.masjid),
-      DonasiPage(masjid: widget.masjid),
+      DonasiPage(masjidId: widget.masjid?.id),
       KeuanganPage(masjid: widget.masjid),
     ];
   }
