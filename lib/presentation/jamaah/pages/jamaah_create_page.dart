@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:sajadah/domain/entities/jamaah/jamaah.dart';
 import 'package:sajadah/domain/usecases/jamaah/create_jamaah.dart';
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 
 class JamaahCreatePage extends StatefulWidget {
   final String? masjidId;
-  const JamaahCreatePage({super.key, this.masjidId});
+  final MasjidEntity? masjid;
+  const JamaahCreatePage({super.key, this.masjidId, this.masjid});
 
   @override
   State<JamaahCreatePage> createState() => _JamaahCreatePageState();
@@ -70,7 +72,7 @@ class _JamaahCreatePageState extends State<JamaahCreatePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Buat Jamaah')),
+      appBar: AppBar(title: Text(widget.masjid?.title ?? 'Buat Jamaah')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(

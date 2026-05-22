@@ -7,11 +7,13 @@ import 'package:sajadah/presentation/events/pages/event_detail_page.dart';
 import 'package:sajadah/service_locator.dart';
 import 'package:sajadah/domain/usecases/masjid/get_news_masjid.dart';
 import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
+import 'package:sajadah/common/widgets/app_drawer.dart';
 
 class EventsPage extends StatefulWidget {
   final String? masjidId;
+  final MasjidEntity? masjid;
 
-  const EventsPage({super.key, this.masjidId});
+  const EventsPage({super.key, this.masjidId, this.masjid});
 
   @override
   State<EventsPage> createState() => _EventsPageState();
@@ -31,9 +33,10 @@ class _EventsPageState extends State<EventsPage> {
   }
 
   Future<List<EventEntity>> _getEvents() async {
-    if (widget.masjidId != null) {
+    final masjidId = widget.masjidId ?? widget.masjid?.id;
+    if (masjidId != null) {
       final result = await sl<GetEventsByMasjidUseCase>().call(
-        params: GetEventsByMasjidParams(masjidId: widget.masjidId!),
+        params: GetEventsByMasjidParams(masjidId: masjidId),
       );
       return result.fold((error) {
         if (!mounted) return [];
@@ -56,11 +59,13 @@ class _EventsPageState extends State<EventsPage> {
 
   Future<void> _onCreatePressed() async {
     // If this page was opened for a specific masjid, create directly for it
-    if (widget.masjidId != null) {
+    final masjidId = widget.masjidId ?? widget.masjid?.id;
+    if (masjidId != null) {
       final result = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => EventCreatePage(masjidId: widget.masjidId),
+          builder: (context) =>
+              EventCreatePage(masjidId: masjidId, masjid: widget.masjid),
         ),
       );
 
@@ -113,7 +118,8 @@ class _EventsPageState extends State<EventsPage> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => EventCreatePage(masjidId: chosen.id),
+        builder: (context) =>
+            EventCreatePage(masjidId: chosen.id, masjid: chosen),
       ),
     );
 
@@ -127,7 +133,8 @@ class _EventsPageState extends State<EventsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Event')),
+      drawer: AppDrawer(masjid: widget.masjid),
+      appBar: AppBar(title: Text(widget.masjid?.title ?? 'Event masjid ')),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(

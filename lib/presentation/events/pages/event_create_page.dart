@@ -6,10 +6,12 @@ import 'package:sajadah/data/models/Event/event.dart';
 import 'package:sajadah/domain/usecases/event/create_event.dart';
 import 'package:sajadah/domain/usecases/event/create_event_for_masjid.dart';
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 
 class EventCreatePage extends StatefulWidget {
   final String? masjidId;
-  const EventCreatePage({super.key, this.masjidId});
+  final MasjidEntity? masjid;
+  const EventCreatePage({super.key, this.masjidId, this.masjid});
 
   @override
   State<EventCreatePage> createState() => _EventCreatePageState();
@@ -117,10 +119,11 @@ class _EventCreatePageState extends State<EventCreatePage> {
 
       // Upload event dengan gambar
       late final result;
-      if (widget.masjidId != null) {
+      final masjidId = widget.masjidId ?? widget.masjid?.id;
+      if (masjidId != null) {
         result = await sl<CreateEventForMasjidUseCase>().call(
           params: CreateEventForMasjidParams(
-            masjidId: widget.masjidId!,
+            masjidId: masjidId,
             event: eventModel,
             imageFile: _imageFile,
           ),
@@ -200,7 +203,7 @@ class _EventCreatePageState extends State<EventCreatePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Buat Event Baru')),
+      appBar: AppBar(title: Text(widget.masjid?.title ?? 'Buat Event Baru')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(

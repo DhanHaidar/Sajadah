@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:sajadah/domain/entities/jamaah/jamaah.dart';
+import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 import 'package:sajadah/domain/usecases/jamaah/get_jamaah.dart';
 import 'package:sajadah/service_locator.dart';
-import 'package:sajadah/presentation/jamaah/pages/jamaah_create_page.dart';
+import 'package:sajadah/presentation/jamaah/pages/jamaah_manage_page.dart';
+import 'package:sajadah/common/widgets/app_drawer.dart';
 
 class JamaahPage extends StatefulWidget {
   final String? masjidId;
-  const JamaahPage({super.key, this.masjidId});
+  final MasjidEntity? masjid;
+  const JamaahPage({super.key, this.masjidId, this.masjid});
 
   @override
   State<JamaahPage> createState() => _JamaahPageState();
@@ -14,6 +17,7 @@ class JamaahPage extends StatefulWidget {
 
 class _JamaahPageState extends State<JamaahPage> {
   late Future<List<JamaahEntity>> _jamaahsFuture;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -26,7 +30,8 @@ class _JamaahPageState extends State<JamaahPage> {
   }
 
   Future<List<JamaahEntity>> _getJamaahs() async {
-    if (widget.masjidId == null) {
+    final masjidId = widget.masjidId ?? widget.masjid?.id;
+    if (masjidId == null) {
       if (!mounted) return [];
       ScaffoldMessenger.of(
         context,
@@ -35,7 +40,7 @@ class _JamaahPageState extends State<JamaahPage> {
     }
 
     final result = await sl<GetJamaahsByMasjidUseCase>().call(
-      params: GetJamaahsByMasjidParams(masjidId: widget.masjidId!),
+      params: GetJamaahsByMasjidParams(masjidId: masjidId),
     );
 
     return result.fold((error) {
@@ -50,7 +55,8 @@ class _JamaahPageState extends State<JamaahPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Jamaah')),
+      drawer: AppDrawer(masjid: widget.masjid),
+      appBar: AppBar(title: Text(widget.masjid?.title ?? 'Daftar Jamaah')),
       body: FutureBuilder<List<JamaahEntity>>(
         future: _jamaahsFuture,
         builder: (context, snapshot) {
@@ -62,67 +68,250 @@ class _JamaahPageState extends State<JamaahPage> {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
-          final jamaahs = snapshot.data ?? [];
-          if (jamaahs.isEmpty) {
+          final allJamaahs = snapshot.data ?? [];
+
+          // Filter berdasarkan search query
+          final filteredJamaahs = allJamaahs
+              .where(
+                (j) =>
+                    j.name.toLowerCase().contains(_searchQuery.toLowerCase()),
+              )
+              .toList();
+
+          // Hitung statistik
+          final lakiLaki = allJamaahs
+              .where((j) => j.jenisKelamin == 'Laki Laki')
+              .length;
+          final perempuan = allJamaahs
+              .where((j) => j.jenisKelamin == 'Perempuan')
+              .length;
+          final total = allJamaahs.length;
+
+          if (allJamaahs.isEmpty) {
             return const Center(child: Text('Belum ada jamaah'));
           }
 
-          return ListView.separated(
-            itemCount: jamaahs.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
-            itemBuilder: (context, index) {
-              final j = jamaahs[index];
-              return ListTile(
-                title: Text(j.name),
-                subtitle: Text('Kategori: ${j.kategori} • ${j.jenisKelamin}'),
-                trailing: j.noHp != null && j.noHp!.isNotEmpty
-                    ? Text(j.noHp!)
-                    : null,
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: Text(j.name),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Kategori: ${j.kategori}'),
-                          Text('Jenis Kelamin: ${j.jenisKelamin}'),
-                          if (j.noHp != null && j.noHp!.isNotEmpty)
-                            Text('No HP: ${j.noHp}'),
-                        ],
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header Data Jama'ah dengan Search, Filter, dan Kelola
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Data Jama\'ah',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(),
-                          child: const Text('Tutup'),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Search bar, Filter, dan Kelola
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Cari Jama\'ah',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey[200],
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: Icon(Icons.tune, color: Colors.grey[700]),
+                        onPressed: () {
+                          // TODO: Implement filter
+                        },
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final res = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => JamaahManagePage(
+                                masjidId: widget.masjidId,
+                                masjid: widget.masjid,
+                              ),
+                            ),
+                          );
+                          if (res == true) {
+                            setState(() {
+                              _loadJamaahs();
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                        ),
+                        child: const Text(
+                          'Kelola',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Statistik Kartu
+                  Row(
+                    children: [
+                      Expanded(child: _buildStatCard('Laki Laki', lakiLaki)),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildStatCard('Perempuan', perempuan)),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildStatCard('Total', total)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Info dan Export
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Menampilkan ${filteredJamaahs.length} dari $total jama\'ah',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          // TODO: Implement export
+                        },
+                        icon: const Icon(Icons.download),
+                        label: const Text('Export'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Table Header
+                  Container(
+                    color: Colors.grey[300],
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'Nama',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            'Jenis Kelamin',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            'Kategori',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[700],
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                  );
-                },
-              );
-            },
+                  ),
+
+                  // Table Content
+                  ...filteredJamaahs.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final j = entry.value;
+                    final isEven = index % 2 == 0;
+
+                    return Container(
+                      color: isEven ? Colors.grey[100] : Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(flex: 2, child: Text(j.name)),
+                          Expanded(flex: 1, child: Text(j.jenisKelamin)),
+                          Expanded(flex: 1, child: Text(j.kategori)),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ],
+              ),
+            ),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: null,
-        onPressed: () async {
-          final res = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => JamaahCreatePage(masjidId: widget.masjidId),
+    );
+  }
+
+  Widget _buildStatCard(String label, int count) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
             ),
-          );
-          if (res == true) {
-            setState(() {
-              _loadJamaahs();
-            });
-          }
-        },
-        child: const Icon(Icons.add),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            count.toString(),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+        ],
       ),
     );
   }

@@ -3,6 +3,8 @@ import 'package:sajadah/presentation/dashboard/pages/dashboard.dart';
 import 'package:sajadah/presentation/events/pages/event_page.dart';
 import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 import 'package:sajadah/presentation/jamaah/pages/jamaah_page.dart';
+import 'package:sajadah/presentation/donasi/pages/donasi_page.dart';
+import 'package:sajadah/presentation/keuangan/pages/keuangan_page.dart';
 
 /// App-wide bottom navigation that switches between Dashboard and Events.
 ///
@@ -30,8 +32,10 @@ class _AppBottomNavState extends State<AppBottomNav> {
     _pages = [
       // Dashboard can accept an optional MasjidEntity
       Dashboard(masjid: widget.masjid),
-      EventsPage(masjidId: widget.masjid?.id),
-      JamaahPage(masjidId: widget.masjid?.id),
+      EventsPage(masjidId: widget.masjid?.id, masjid: widget.masjid),
+      JamaahPage(masjidId: widget.masjid?.id, masjid: widget.masjid),
+      DonasiPage(masjid: widget.masjid),
+      KeuanganPage(masjid: widget.masjid),
     ];
   }
 
@@ -42,6 +46,7 @@ class _AppBottomNavState extends State<AppBottomNav> {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
         onTap: _onTap,
         items: const [
@@ -51,6 +56,14 @@ class _AppBottomNavState extends State<AppBottomNav> {
           ),
           BottomNavigationBarItem(icon: Icon(Icons.event), label: 'Event'),
           BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Jamaah'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.attach_money),
+            label: 'Donasi',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance_wallet),
+            label: 'Keuangan',
+          ),
         ],
       ),
     );

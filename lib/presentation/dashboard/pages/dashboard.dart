@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sajadah/common/widgets/bottom_nav_bar.dart';
+import 'package:sajadah/common/widgets/app_drawer.dart';
 import 'package:sajadah/core/configs/assets/app_images.dart';
 import 'package:sajadah/core/configs/constants/app_urls.dart';
 import 'package:sajadah/data/repository/auth/auth_repository_impl.dart';
@@ -18,7 +19,12 @@ class Dashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.menu), onPressed: () {}),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
         title: Text(masjid?.title ?? 'Dashboard'),
         actions: [
           IconButton(onPressed: () {}, icon: const Icon(Icons.notifications)),
@@ -42,6 +48,7 @@ class Dashboard extends StatelessWidget {
         ],
       ),
 
+      drawer: AppDrawer(masjid: masjid),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
