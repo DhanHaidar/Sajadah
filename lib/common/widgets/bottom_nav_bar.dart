@@ -3,11 +3,8 @@ import 'package:sajadah/presentation/dashboard/pages/dashboard.dart';
 import 'package:sajadah/presentation/events/pages/event_page.dart';
 import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 import 'package:sajadah/presentation/jamaah/pages/jamaah_page.dart';
+import 'package:sajadah/presentation/donasi/pages/donasi_list_page.dart'; // IMPORT HALAMAN BARU
 
-/// App-wide bottom navigation that switches between Dashboard and Events.
-///
-/// Usage: Place `AppBottomNav()` as the app's home widget, or embed it
-/// where you want a full-screen scaffold with bottom navigation.
 class AppBottomNav extends StatefulWidget {
   final int initialIndex;
   final MasjidEntity? masjid;
@@ -28,10 +25,10 @@ class _AppBottomNavState extends State<AppBottomNav> {
     super.initState();
     _currentIndex = widget.initialIndex;
     _pages = [
-      // Dashboard can accept an optional MasjidEntity
       Dashboard(masjid: widget.masjid),
       EventsPage(masjidId: widget.masjid?.id),
-      JamaahPage(masjidId: widget.masjid?.id),
+      DonasiListPage(masjid: widget.masjid), // TAB BARU: DONASI (Index 2)
+      JamaahPage(masjidId: widget.masjid?.id), // Jamaah geser ke Index 3
     ];
   }
 
@@ -44,12 +41,13 @@ class _AppBottomNavState extends State<AppBottomNav> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: _onTap,
+        type: BottomNavigationBarType.fixed, // Tambahkan ini agar warna/ikon tidak aneh jika lebih dari 3 tab
+        selectedItemColor: Colors.green, // Sesuaikan dengan warna brand aplikasimu
+        unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
           BottomNavigationBarItem(icon: Icon(Icons.event), label: 'Event'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: 'Donasi'), // IKON DONASI
           BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Jamaah'),
         ],
       ),

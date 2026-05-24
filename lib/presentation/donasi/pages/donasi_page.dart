@@ -5,6 +5,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sajadah/domain/entities/payment/payment.dart';
 import 'package:sajadah/presentation/donasi/bloc/payment_cubit.dart';
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/presentation/auth/bloc/auth_cubit.dart';
 
 class DonasiPage extends StatelessWidget {
   const DonasiPage({super.key});
@@ -12,7 +13,7 @@ class DonasiPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => PaymentCubit(sl(), sl()), // Inject 2 Usecase
+      create: (context) => PaymentCubit(sl(), sl()), 
       child: const DonasiView(),
     );
   }
@@ -119,6 +120,7 @@ class _DonasiViewState extends State<DonasiView> {
     });
   }
 
+  // --- LOGIKA MENGAMBIL EMAIL USER SAAT INI ---
   void _submitDonasi() {
     double amount = 0;
     if (_customAmountController.text.isNotEmpty) {
@@ -131,8 +133,20 @@ class _DonasiViewState extends State<DonasiView> {
     String phone = _phoneController.text.trim();
     if (phone.isEmpty) return;
 
+    // --- AMBIL DATA DARI BLOC/CUBIT AUTH ---
+    final authState = context.read<AuthCubit>().state;
+    String userEmail = 'hamba_allah@sajadah.app'; // Default
+
+    if (authState is AuthAuthenticated) {
+      // Jika ada user yang terautentikasi (meskipun anonymous), ambil emailnya
+      userEmail = authState.user.email ?? 'hamba_allah@sajadah.app';
+    }
+
     context.read<PaymentCubit>().processPayment(
-          amount: amount, type: 'donasi', userEmail: 'user@example.com', userPhone: phone, 
+          amount: amount, 
+          type: 'donasi', 
+          userEmail: userEmail, 
+          userPhone: phone, 
         );
   }
 
@@ -171,7 +185,6 @@ class _DonasiViewState extends State<DonasiView> {
           ),
         ),
         actions: [
-          // TOMBOL CEK STATUS DI DALAM POP-UP
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
             icon: const Icon(Icons.refresh, size: 18),
@@ -204,7 +217,6 @@ class _DonasiViewState extends State<DonasiView> {
             _showQrisDialog(state.payment); 
           } 
           else if (state is PaymentStatusChecked) {
-            // JIKA CEK STATUS BERHASIL "SUKSES"
             if (state.status.toLowerCase() == 'sukses') {
               _clearPendingTransaction("Terima kasih atas donasinya! Transaksi telah berhasil.", isSuccess: true);
             } else {
@@ -267,7 +279,6 @@ class _DonasiViewState extends State<DonasiView> {
                     ),
                   ),
 
-                // ... (GRID NOMINAL DAN TEXTFIELD DI BAWAHNYA SAMA SEPERTI KODE SEBELUMNYA)
                 const Text('Donasi Sekarang Juga', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 
