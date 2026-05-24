@@ -89,8 +89,10 @@ class _MasjidDetailPageState extends State<MasjidDetailPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        JamaahPage(masjidId: widget.masjid.id),
+                    builder: (context) => JamaahPage(
+                      masjidId: widget.masjid.id,
+                      masjid: widget.masjid,
+                    ),
                   ),
                 );
               },
@@ -133,7 +135,10 @@ class _MasjidDetailPageState extends State<MasjidDetailPage> {
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => EventCreatePage(masjidId: widget.masjid.id),
+              builder: (context) => EventCreatePage(
+                masjidId: widget.masjid.id,
+                masjid: widget.masjid,
+              ),
             ),
           );
           if (result == true) {

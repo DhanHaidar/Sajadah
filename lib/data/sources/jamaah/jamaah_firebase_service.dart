@@ -9,6 +9,14 @@ abstract class JamaahFirebaseService {
   Future<Either> getJamaahsByMasjid(String masjidId);
   Future<Either> createJamaah(JamaahModel jamaah);
   Future<Either> createJamaahForMasjid(String masjidId, JamaahModel jamaah);
+  Future<Either> updateJamaah(String docId, JamaahModel jamaah);
+  Future<Either> updateJamaahForMasjid(
+    String masjidId,
+    String docId,
+    JamaahModel jamaah,
+  );
+  Future<Either> deleteJamaah(String docId);
+  Future<Either> deleteJamaahForMasjid(String masjidId, String docId);
 }
 
 class JamaahFirebaseServiceImpl extends JamaahFirebaseService {
@@ -108,6 +116,83 @@ class JamaahFirebaseServiceImpl extends JamaahFirebaseService {
     } catch (e) {
       print('❌ Error creating jamaah: $e');
       return Left("Gagal membuat jamaah: $e");
+    }
+  }
+
+  @override
+  Future<Either> updateJamaah(String docId, JamaahModel jamaah) async {
+    try {
+      final jamaahData = jamaah.toJson();
+      jamaahData['updatedAt'] = Timestamp.now();
+      print('🔁 Updating Firestore Jamaah doc: $docId');
+      await FirebaseFirestore.instance
+          .collection('Jamaah')
+          .doc(docId)
+          .update(jamaahData);
+      print('✅ Update successful: $docId');
+      return Right(true);
+    } catch (e) {
+      print('❌ Error updating jamaah $docId: $e');
+      return Left('Gagal mengubah jamaah: $e');
+    }
+  }
+
+  @override
+  Future<Either> updateJamaahForMasjid(
+    String masjidId,
+    String docId,
+    JamaahModel jamaah,
+  ) async {
+    try {
+      final jamaahData = jamaah.toJson();
+      jamaahData['updatedAt'] = Timestamp.now();
+      print(
+        '🔁 Updating Firestore Jamaah subdoc: Masjid/$masjidId/Jamaah/$docId',
+      );
+      await FirebaseFirestore.instance
+          .collection('Masjid')
+          .doc(masjidId)
+          .collection('Jamaah')
+          .doc(docId)
+          .update(jamaahData);
+      print('✅ Update successful: $docId');
+      return Right(true);
+    } catch (e) {
+      print('❌ Error updating jamaah $docId for masjid $masjidId: $e');
+      return Left('Gagal mengubah jamaah untuk masjid $masjidId: $e');
+    }
+  }
+
+  @override
+  Future<Either> deleteJamaah(String docId) async {
+    try {
+      print('🗑️ Deleting Firestore Jamaah doc: $docId');
+      await FirebaseFirestore.instance.collection('Jamaah').doc(docId).delete();
+      print('✅ Delete successful: $docId');
+      return Right(true);
+    } catch (e) {
+      print('❌ Error deleting jamaah $docId: $e');
+      return Left('Gagal menghapus jamaah: $e');
+    }
+  }
+
+  @override
+  Future<Either> deleteJamaahForMasjid(String masjidId, String docId) async {
+    try {
+      print(
+        '🗑️ Deleting Firestore Jamaah subdoc: Masjid/$masjidId/Jamaah/$docId',
+      );
+      await FirebaseFirestore.instance
+          .collection('Masjid')
+          .doc(masjidId)
+          .collection('Jamaah')
+          .doc(docId)
+          .delete();
+      print('✅ Delete successful: $docId');
+      return Right(true);
+    } catch (e) {
+      print('❌ Error deleting jamaah $docId for masjid $masjidId: $e');
+      return Left('Gagal menghapus jamaah untuk masjid $masjidId: $e');
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:sajadah/domain/repository/auth/auth.dart';
 import 'package:sajadah/presentation/masjid/widget/news_masjid.dart';
 import 'package:sajadah/presentation/masjid/pages/masjid_create_page.dart';
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/common/auth/role_helper.dart';
 
 class MasjidPages extends StatelessWidget {
   const MasjidPages({super.key});
@@ -15,6 +16,19 @@ class MasjidPages extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         heroTag: null,
         onPressed: () async {
+          // Guard: only admin can create masjid
+          final isAdmin = await RoleHelper.isAdmin();
+          if (!isAdmin) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Akses ditolak: hanya admin yang dapat menambah masjid',
+                ),
+              ),
+            );
+            return;
+          }
+
           final result = await Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const MasjidCreatePage()),

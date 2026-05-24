@@ -62,4 +62,61 @@ class JamaahRepositoryImpl extends JamaahRepository {
       jamaahModel,
     );
   }
+
+  @override
+  Future<Either> updateJamaah(String docId, JamaahEntity jamaah) async {
+    final jamaahModel = JamaahModel(
+      userId: jamaah.userId,
+      masjidId: jamaah.masjidId,
+      name: jamaah.name,
+      jenisKelamin: jamaah.jenisKelamin,
+      noHp: jamaah.noHp,
+      kategori: jamaah.kategori,
+    );
+
+    if (jamaah.masjidId != null && jamaah.masjidId!.isNotEmpty) {
+      return await sl<JamaahFirebaseService>().updateJamaahForMasjid(
+        jamaah.masjidId!,
+        docId,
+        jamaahModel,
+      );
+    }
+
+    return await sl<JamaahFirebaseService>().updateJamaah(docId, jamaahModel);
+  }
+
+  @override
+  Future<Either> updateJamaahForMasjid(
+    String masjidId,
+    String docId,
+    JamaahEntity jamaah,
+  ) async {
+    final jamaahModel = JamaahModel(
+      userId: jamaah.userId,
+      masjidId: jamaah.masjidId,
+      name: jamaah.name,
+      jenisKelamin: jamaah.jenisKelamin,
+      noHp: jamaah.noHp,
+      kategori: jamaah.kategori,
+    );
+
+    return await sl<JamaahFirebaseService>().updateJamaahForMasjid(
+      masjidId,
+      docId,
+      jamaahModel,
+    );
+  }
+
+  @override
+  Future<Either> deleteJamaah(String docId) async {
+    return await sl<JamaahFirebaseService>().deleteJamaah(docId);
+  }
+
+  @override
+  Future<Either> deleteJamaahForMasjid(String masjidId, String docId) async {
+    return await sl<JamaahFirebaseService>().deleteJamaahForMasjid(
+      masjidId,
+      docId,
+    );
+  }
 }

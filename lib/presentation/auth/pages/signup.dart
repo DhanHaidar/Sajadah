@@ -10,12 +10,27 @@ import 'package:sajadah/common/widgets/bottom_nav_bar.dart';
 import 'package:sajadah/presentation/masjid/pages/masjid_pages.dart';
 import 'package:sajadah/service_locator.dart';
 
-class SignupPage extends StatelessWidget {
-  SignupPage({super.key});
+class SignupPage extends StatefulWidget {
+  const SignupPage({super.key});
 
+  @override
+  State<SignupPage> createState() => _SignupPageState();
+}
+
+class _SignupPageState extends State<SignupPage> {
   final TextEditingController _fullName = TextEditingController();
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
+  String? _selectedRole;
+  final List<String> _roles = ['user', 'admin'];
+
+  @override
+  void dispose() {
+    _fullName.dispose();
+    _email.dispose();
+    _password.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +68,8 @@ class SignupPage extends StatelessWidget {
                       _emailField(context),
                       SizedBox(height: 30),
                       _passwordField(context),
+                      SizedBox(height: 16),
+                      _roleField(context),
                       SizedBox(height: 40),
                       BasicAppButton(
                         onPressed: () async {
@@ -61,6 +78,7 @@ class SignupPage extends StatelessWidget {
                               fullName: _fullName.text.toString(),
                               email: _email.text.toString(),
                               password: _password.text.toString(),
+                              role: _selectedRole ?? 'user',
                             ),
                           );
                           result.fold(
@@ -135,6 +153,22 @@ class SignupPage extends StatelessWidget {
       decoration: InputDecoration(hintText: 'Enter Password'),
       style: TextStyle(color: Colors.white),
       //.applyDefaults(Theme.of(context).inputDecorationTheme),
+    );
+  }
+
+  Widget _roleField(BuildContext context) {
+    return DropdownButtonFormField<String>(
+      value: _selectedRole,
+      decoration: InputDecoration(
+        hintText: 'Pilih Role',
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.06),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+      ),
+      items: _roles
+          .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+          .toList(),
+      onChanged: (v) => setState(() => _selectedRole = v),
     );
   }
 
