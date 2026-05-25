@@ -29,6 +29,7 @@ import 'package:sajadah/domain/usecases/masjid/create_masjid.dart';
 import 'package:sajadah/domain/usecases/masjid/get_news_masjid.dart';
 import 'package:sajadah/domain/usecases/payment/create_payment.dart';
 import 'package:sajadah/domain/usecases/payment/check_payment_status.dart'; // Import UseCase Payment Status
+import 'package:sajadah/domain/usecases/masjid/create_donasi.dart'; // Import UseCase Create Donasi
 
 final sl = GetIt.instance;
 
@@ -61,6 +62,7 @@ Future<void> intializeDependencies() async {
   // Masjid
   sl.registerSingleton<GetNewsMasjidsUseCase>(GetNewsMasjidsUseCase());
   sl.registerSingleton<CreateMasjidUseCase>(CreateMasjidUseCase());
+  sl.registerSingleton<CreateDonasiUseCase>(CreateDonasiUseCase());
   
   // Jamaah
   sl.registerSingleton<CreateJamaahUseCase>(CreateJamaahUseCase());
