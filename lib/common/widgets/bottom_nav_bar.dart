@@ -49,6 +49,8 @@ class _AppBottomNavState extends State<AppBottomNav> {
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
         onTap: _onTap,
+        selectedItemColor: Colors.green, // Sesuaikan dengan warna brand aplikasimu
+        unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
