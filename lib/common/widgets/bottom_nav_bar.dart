@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sajadah/presentation/dashboard/pages/dashboard.dart';
+import 'package:sajadah/presentation/donasi/pages/donasi_list_page.dart';
 import 'package:sajadah/presentation/events/pages/event_page.dart';
 import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 import 'package:sajadah/presentation/jamaah/pages/jamaah_page.dart';
@@ -34,7 +35,7 @@ class _AppBottomNavState extends State<AppBottomNav> {
       Dashboard(masjid: widget.masjid),
       EventsPage(masjidId: widget.masjid?.id, masjid: widget.masjid),
       JamaahPage(masjidId: widget.masjid?.id, masjid: widget.masjid),
-      DonasiPage(masjidId: widget.masjid?.id),
+      DonasiListPage(masjidId: widget.masjid?.id),
       KeuanganPage(masjid: widget.masjid),
     ];
   }
