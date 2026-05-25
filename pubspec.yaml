@@ -18,11 +18,12 @@ dependencies:
   firebase_core: 
   firebase_auth:
   supabase_flutter:
-  image_picker:
+  image_picker: ^1.2.2
   get_it: 
   dartz: 
   cloud_firestore: 
   qr_flutter: ^4.1.0
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
