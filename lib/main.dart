@@ -11,7 +11,6 @@ import 'package:sajadah/presentation/donasi/pages/donasi_page.dart';
 import 'package:sajadah/presentation/intro/bloc/them_cubit.dart';
 import 'package:sajadah/presentation/splash/pages/splash.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:sajadah/presentation/auth/bloc/auth_cubit.dart';
 import 'package:sajadah/service_locator.dart';
 
 // Import Bottom Nav Bar kamu di sini
@@ -48,10 +47,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => ThemeCubit()),
-        BlocProvider(create: (_) => AuthCubit()..checkCurrentUser()),
-      ],
+      providers: [BlocProvider(create: (_) => ThemeCubit())],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, mode) => MaterialApp(
           debugShowCheckedModeBanner: false,
