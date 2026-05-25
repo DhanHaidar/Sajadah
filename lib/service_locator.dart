@@ -65,10 +65,9 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<GetNewsMasjidsUseCase>(GetNewsMasjidsUseCase());
   sl.registerSingleton<CreateMasjidUseCase>(CreateMasjidUseCase());
   sl.registerSingleton<CreateDonasiUseCase>(CreateDonasiUseCase());
-
   sl.registerSingleton<CreateJamaahUseCase>(CreateJamaahUseCase());
+  sl.registerSingleton<CreatePaymentUseCase>(CreatePaymentUseCase(sl()));
   sl.registerSingleton<CheckPaymentStatusUseCase>(
     CheckPaymentStatusUseCase(sl()),
   );
-  sl.registerSingleton<CreatePaymentUseCase>(CreatePaymentUseCase(sl()));
 }
