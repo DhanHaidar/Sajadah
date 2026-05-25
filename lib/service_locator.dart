@@ -84,8 +84,3 @@ Future<void> intializeDependencies() async {
   sl.registerSingleton<CreatePaymentUseCase>(CreatePaymentUseCase(sl()));
   sl.registerSingleton<CheckPaymentStatusUseCase>(CheckPaymentStatusUseCase(sl())); // Didaftarkan HANYA SEKALI
 }
-  sl.registerSingleton<CheckPaymentStatusUseCase>(
-    CheckPaymentStatusUseCase(sl()),
-  );
-  sl.registerSingleton<CreatePaymentUseCase>(CreatePaymentUseCase(sl()));
-}
