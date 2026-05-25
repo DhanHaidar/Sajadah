@@ -30,7 +30,7 @@ Future<void> main() async {
   try {
     await FirebaseAuth.instance.signInAnonymously();
   } catch (_) {}
-  await intializeDependencies();
+  await initializeDependencies();
   runApp(MainApp());
 }
 
@@ -48,7 +48,6 @@ class MainApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           home: const SplashPage(),
-          // home: const SplashPage(),
         ),
       ),
     );
