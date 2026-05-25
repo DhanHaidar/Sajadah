@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 import 'package:sajadah/presentation/donasi/pages/donasi_page.dart'; 
+import 'package:sajadah/presentation/donasi/pages/donasi_create_page.dart';
 
 class DonasiListPage extends StatelessWidget {
   final MasjidEntity? masjid;
@@ -25,8 +26,10 @@ class DonasiListPage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.add_box, color: Colors.green, size: 30),
             onPressed: () {
-              // TODO: Arahkan ke halaman "Tambahkan Donasi" 
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fitur Tambah Donasi Segera Hadir')));
+              Navigator.push(
+                context, 
+                MaterialPageRoute(builder: (_) => DonasiCreatePage(masjid: masjid)) // Arahkan ke halaman baru
+              );
             },
           ),
           const SizedBox(width: 8),
