@@ -3,13 +3,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sajadah/data/models/Event/event.dart';
+import 'package:sajadah/common/enums/kategori_event.dart';
 import 'package:sajadah/domain/usecases/event/create_event.dart';
 import 'package:sajadah/domain/usecases/event/create_event_for_masjid.dart';
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 
 class EventCreatePage extends StatefulWidget {
   final String? masjidId;
-  const EventCreatePage({super.key, this.masjidId});
+  final MasjidEntity? masjid;
+  const EventCreatePage({super.key, this.masjidId, this.masjid});
 
   @override
   State<EventCreatePage> createState() => _EventCreatePageState();
@@ -23,6 +26,7 @@ class _EventCreatePageState extends State<EventCreatePage> {
 
   File? _imageFile;
   DateTime? _selectedDateTime;
+  KategoriEvent? _selectedKategori = KategoriEvent.agama;
   bool _isLoading = false;
 
   // Membuka galeri, lalu menyimpan file yang dipilih ke state untuk preview lokal
@@ -111,16 +115,18 @@ class _EventCreatePageState extends State<EventCreatePage> {
         speaker: _speakerController.text.isNotEmpty
             ? _speakerController.text
             : null,
+        kategori: _selectedKategori?.value,
         dateTime: _selectedDateTime!,
         location: _locationController.text,
       );
 
       // Upload event dengan gambar
       late final result;
-      if (widget.masjidId != null) {
+      final masjidId = widget.masjidId ?? widget.masjid?.id;
+      if (masjidId != null) {
         result = await sl<CreateEventForMasjidUseCase>().call(
           params: CreateEventForMasjidParams(
-            masjidId: widget.masjidId!,
+            masjidId: masjidId,
             event: eventModel,
             imageFile: _imageFile,
           ),
@@ -200,7 +206,7 @@ class _EventCreatePageState extends State<EventCreatePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Buat Event Baru')),
+      appBar: AppBar(title: Text(widget.masjid?.title ?? 'Buat Event Baru')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(
@@ -307,6 +313,32 @@ class _EventCreatePageState extends State<EventCreatePage> {
               enabled: !_isLoading,
               decoration: InputDecoration(
                 hintText: 'Masukkan nama pembicara',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Kategori event
+            const Text(
+              'Kategori Event',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<KategoriEvent>(
+              value: _selectedKategori,
+              items: KategoriEvent.values
+                  .map((k) => DropdownMenuItem(value: k, child: Text(k.label)))
+                  .toList(),
+              onChanged: _isLoading
+                  ? null
+                  : (v) {
+                      setState(() {
+                        _selectedKategori = v;
+                      });
+                    },
+              decoration: InputDecoration(
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),

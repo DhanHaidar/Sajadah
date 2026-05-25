@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:sajadah/domain/entities/event/event.dart';
+import 'package:sajadah/common/enums/kategori_event.dart';
 
 class EventDetailPage extends StatelessWidget {
   final EventEntity event;
@@ -75,6 +76,18 @@ class EventDetailPage extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 8),
+                  if (event.kategori != null && event.kategori!.isNotEmpty)
+                    Row(
+                      children: [
+                        const Icon(Icons.label, size: 16),
+                        const SizedBox(width: 8),
+                        Text(
+                          KategoriEventX.fromString(event.kategori)?.label ??
+                              event.kategori!,
+                        ),
+                      ],
+                    ),
                   const SizedBox(height: 8),
                   Row(
                     children: [

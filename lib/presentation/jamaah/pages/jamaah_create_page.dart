@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:sajadah/domain/entities/jamaah/jamaah.dart';
 import 'package:sajadah/domain/usecases/jamaah/create_jamaah.dart';
+import 'package:sajadah/domain/usecases/jamaah/update_jamaah.dart';
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
+import 'package:sajadah/common/enums/kategori_jamaah.dart';
 
 class JamaahCreatePage extends StatefulWidget {
   final String? masjidId;
-  const JamaahCreatePage({super.key, this.masjidId});
+  final MasjidEntity? masjid;
+  final JamaahEntity? initialJamaah;
+  const JamaahCreatePage({
+    super.key,
+    this.masjidId,
+    this.masjid,
+    this.initialJamaah,
+  });
 
   @override
   State<JamaahCreatePage> createState() => _JamaahCreatePageState();
@@ -15,9 +25,10 @@ class _JamaahCreatePageState extends State<JamaahCreatePage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameCtrl = TextEditingController();
   final TextEditingController _noHpCtrl = TextEditingController();
-  final TextEditingController _kategoriCtrl = TextEditingController();
+  KategoriJamaah? _selectedKategori;
   String? _jenisKelamin = 'Laki-laki';
   bool _isSubmitting = false;
+  bool _isEdit = false;
 
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
@@ -31,8 +42,45 @@ class _JamaahCreatePageState extends State<JamaahCreatePage> {
       name: _nameCtrl.text.trim(),
       jenisKelamin: _jenisKelamin ?? '',
       noHp: _noHpCtrl.text.trim().isEmpty ? null : _noHpCtrl.text.trim(),
-      kategori: _kategoriCtrl.text.trim(),
+      kategori: _selectedKategori?.value ?? '',
     );
+    if (_isEdit && widget.initialJamaah != null) {
+      final docId = widget.initialJamaah!.userId ?? '';
+      if (docId.isEmpty) {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tidak dapat mengubah: ID dokumen tidak ditemukan'),
+          ),
+        );
+        return;
+      }
+
+      final result = await sl<UpdateJamaahUseCase>().call(
+        params: UpdateJamaahParams(docId: docId, jamaah: jamaah),
+      );
+
+      result.fold(
+        (l) {
+          setState(() {
+            _isSubmitting = false;
+          });
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Gagal mengubah jamaah: $l')));
+        },
+        (r) {
+          setState(() {
+            _isSubmitting = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Jamaah berhasil diubah')),
+          );
+          Navigator.of(context).pop(true);
+        },
+      );
+      return;
+    }
 
     final result = await sl<CreateJamaahUseCase>().call(
       params: CreateJamaahParams(jamaah: jamaah),
@@ -63,14 +111,33 @@ class _JamaahCreatePageState extends State<JamaahCreatePage> {
   void dispose() {
     _nameCtrl.dispose();
     _noHpCtrl.dispose();
-    _kategoriCtrl.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialJamaah != null) {
+      _isEdit = true;
+      _nameCtrl.text = widget.initialJamaah!.name;
+      _selectedKategori =
+          KategoriJamaahX.fromString(widget.initialJamaah!.kategori) ??
+          KategoriJamaah.dewasa;
+      _noHpCtrl.text = widget.initialJamaah!.noHp ?? '';
+      _jenisKelamin = (widget.initialJamaah!.jenisKelamin.isNotEmpty)
+          ? widget.initialJamaah!.jenisKelamin
+          : _jenisKelamin;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Buat Jamaah')),
+      appBar: AppBar(
+        title: Text(
+          widget.masjid?.title ?? (_isEdit ? 'Ubah Jamaah' : 'Buat Jamaah'),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -113,11 +180,16 @@ class _JamaahCreatePageState extends State<JamaahCreatePage> {
                 keyboardType: TextInputType.phone,
               ),
               const SizedBox(height: 8),
-              TextFormField(
-                controller: _kategoriCtrl,
+              DropdownButtonFormField<KategoriJamaah>(
+                value: _selectedKategori,
                 decoration: const InputDecoration(labelText: 'Kategori'),
-                validator: (v) =>
-                    (v?.trim().isEmpty ?? true) ? 'Kategori wajib diisi' : null,
+                items: KategoriJamaah.values
+                    .map(
+                      (k) => DropdownMenuItem(value: k, child: Text(k.label)),
+                    )
+                    .toList(),
+                onChanged: (v) => setState(() => _selectedKategori = v),
+                validator: (v) => v == null ? 'Kategori wajib diisi' : null,
               ),
               const SizedBox(height: 16),
               SizedBox(

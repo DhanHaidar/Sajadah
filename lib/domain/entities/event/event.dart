@@ -3,6 +3,7 @@ class EventEntity {
   final String? masjidId;
   final String title;
   final String deskripsi;
+  final String? kategori;
   final String? speaker;
   final DateTime dateTime;
   final String location;
@@ -13,6 +14,7 @@ class EventEntity {
     this.masjidId,
     required this.title,
     required this.deskripsi,
+    this.kategori,
     this.speaker,
     required this.dateTime,
     required this.location,
