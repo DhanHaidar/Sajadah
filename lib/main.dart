@@ -9,10 +9,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sajadah/firebase_options.dart';
 import 'package:sajadah/presentation/donasi/pages/donasi_page.dart';
 import 'package:sajadah/presentation/intro/bloc/them_cubit.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import 'package:sajadah/presentation/splash/pages/splash.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sajadah/presentation/auth/bloc/auth_cubit.dart';
 import 'package:sajadah/service_locator.dart';
+
+// Import Bottom Nav Bar kamu di sini
+import 'package:sajadah/common/widgets/bottom_nav_bar.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,18 +24,22 @@ Future<void> main() async {
         ? HydratedStorageDirectory.web
         : HydratedStorageDirectory((await getTemporaryDirectory()).path),
   );
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // Initialize Supabase
-  await Supabase.initialize(
-    url: 'https://nngtndfkbwefsphshnjz.supabase.co',
-    anonKey: 'sb_publishable_X6hKInwoC4axwGLAsmONCA_Z5okXn4J',
-  );
+
+  // Initialize Supabase (Masih di-block sementara untuk testing)
+  //await Supabase.initialize(
+  //   url: 'https://nngtndfkbwefsphshnjz.supabase.co',
+  //   anonKey: 'sb_publishable_X6hKInwoC4axwGLAsmONCA_Z5okXn4J',
+  // );
+
   // Sign in anonymously so Firestore rules requiring auth won't block reads during development.
   try {
     await FirebaseAuth.instance.signInAnonymously();
   } catch (_) {}
+
   await intializeDependencies();
-  runApp(MainApp());
+  runApp(const MainApp());
 }
 
 class MainApp extends StatelessWidget {
@@ -41,15 +48,18 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [BlocProvider(create: (_) => ThemeCubit())],
+      providers: [
+        BlocProvider(create: (_) => ThemeCubit()),
+        BlocProvider(create: (_) => AuthCubit()..checkCurrentUser()),
+      ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, mode) => MaterialApp(
           debugShowCheckedModeBanner: false,
           themeMode: mode,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
+
           home: const SplashPage(),
-          // home: const SplashPage(),
         ),
       ),
     );
