@@ -61,7 +61,7 @@ class MainApp extends StatelessWidget {
 
           home: const SplashPage(),
           // home: const SplashPage(),
-          home: const AppBottomNav(),
+          // home: const AppBottomNav(),
           // home: const DonasiPage(),
         ),
       ),

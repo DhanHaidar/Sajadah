@@ -48,7 +48,6 @@ class _AppBottomNavState extends State<AppBottomNav> {
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
         onTap: _onTap,
-        type: BottomNavigationBarType.fixed, // Tambahkan ini agar warna/ikon tidak aneh jika lebih dari 3 tab
         selectedItemColor: Colors.green, // Sesuaikan dengan warna brand aplikasimu
         unselectedItemColor: Colors.grey,
         items: const [
