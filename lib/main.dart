@@ -38,7 +38,7 @@ Future<void> main() async {
     await FirebaseAuth.instance.signInAnonymously();
   } catch (_) {}
 
-  await intializeDependencies();
+  await initializeDependencies();
   runApp(const MainApp());
 }
 
