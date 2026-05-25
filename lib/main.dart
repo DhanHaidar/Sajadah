@@ -31,7 +31,7 @@ Future<void> main() async {
     await FirebaseAuth.instance.signInAnonymously();
   } catch (_) {}
   await initializeDependencies();
-  runApp(MainApp());
+  runApp(const MainApp());
 }
 
 class MainApp extends StatelessWidget {
