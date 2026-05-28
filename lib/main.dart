@@ -28,10 +28,10 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize Supabase (Masih di-block sementara untuk testing)
-  //await Supabase.initialize(
-  //   url: 'https://nngtndfkbwefsphshnjz.supabase.co',
-  //   anonKey: 'sb_publishable_X6hKInwoC4axwGLAsmONCA_Z5okXn4J',
-  // );
+  await Supabase.initialize(
+    url: 'https://nngtndfkbwefsphshnjz.supabase.co',
+    anonKey: 'sb_publishable_X6hKInwoC4axwGLAsmONCA_Z5okXn4J',
+  );
 
   // Sign in anonymously so Firestore rules requiring auth won't block reads during development.
   try {

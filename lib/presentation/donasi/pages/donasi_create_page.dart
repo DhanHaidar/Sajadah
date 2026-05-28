@@ -1,10 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:sajadah/data/models/donasi/donasi_model.dart';
 import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
-import 'package:sajadah/domain/usecases/masjid/create_donasi.dart';
+import 'package:sajadah/domain/usecases/donasi/create_donasi.dart';
 import 'package:sajadah/service_locator.dart';
 
 class DonasiCreatePage extends StatefulWidget {
@@ -28,13 +29,31 @@ class _DonasiCreatePageState extends State<DonasiCreatePage> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery,
-    );
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+        });
+      }
+    } on PlatformException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal mengambil gambar: ${e.message ?? e.code}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal mengambil gambar: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

@@ -1,43 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:sajadah/domain/entities/donasi/donasi_entity.dart';
 import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
+import 'package:sajadah/domain/usecases/donasi/watch_donasi_by_masjid.dart';
 import 'package:sajadah/presentation/donasi/pages/donasi_page.dart';
 import 'package:sajadah/presentation/donasi/pages/donasi_create_page.dart'; // Import halaman tambah donasi
+import 'package:sajadah/service_locator.dart';
 
-class DonasiListPage extends StatelessWidget {
+class DonasiListPage extends StatefulWidget {
   final String? masjidId;
   final MasjidEntity? masjid;
   const DonasiListPage({super.key, this.masjidId, this.masjid});
 
   @override
-  Widget build(BuildContext context) {
-    // Data sementara (dummy)
-    final List<Map<String, dynamic>> dummyCampaigns = [
-      {
-        'title': 'Dana TPQ',
-        'total': 2300000.0,
-        'target': 5000000.0,
-        'image': 'https://picsum.photos/400/200?random=1',
-      },
-      {
-        'title': 'Donasi Pembangunan Masjid',
-        'total': 10120000.0,
-        'target': 15600000.0,
-        'image': 'https://picsum.photos/400/200?random=2',
-      },
-      {
-        'title': 'Bakti Sosial Ramadhan',
-        'total': 4200000.0,
-        'target': 5000000.0,
-        'image': 'https://picsum.photos/400/200?random=3',
-      },
-      {
-        'title': 'Santunan Anak Yatim Piatu',
-        'total': 500000.0,
-        'target': 1000000.0,
-        'image': 'https://picsum.photos/400/200?random=4',
-      },
-    ];
+  State<DonasiListPage> createState() => _DonasiListPageState();
+}
 
+class _DonasiListPageState extends State<DonasiListPage> {
+  late Stream<List<DonasiEntity>> _donasiStream;
+  String _searchQuery = '';
+  String? _resolvedMasjidId;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolvedMasjidId = widget.masjidId ?? widget.masjid?.id;
+    if (_resolvedMasjidId == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Masjid belum dipilih')));
+      });
+      _donasiStream = const Stream<List<DonasiEntity>>.empty();
+      return;
+    }
+
+    _donasiStream = sl<WatchDonasiByMasjidUseCase>().call(
+      masjidId: _resolvedMasjidId!,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Donasi', style: TextStyle(color: Colors.black)),
@@ -46,14 +50,14 @@ class DonasiListPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.add_box, color: Colors.green, size: 30),
-            onPressed: () {
-              final resolvedMasjidId = masjidId ?? masjid?.id;
+            onPressed: () async {
+              final resolvedMasjidId = widget.masjidId ?? widget.masjid?.id;
               // Navigasi ke halaman "Tambahkan Donasi" yang baru kita buat
-              Navigator.push(
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => DonasiCreatePage(
-                    masjid: masjid,
+                    masjid: widget.masjid,
                     masjidId: resolvedMasjidId,
                   ),
                 ),
@@ -63,109 +67,175 @@ class DonasiListPage extends StatelessWidget {
           const SizedBox(width: 8),
         ],
       ),
-      body: Column(
-        children: [
-          // Kolom Pencarian
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Cari Donasi',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                IconButton(
-                  icon: const Icon(Icons.filter_list),
-                  onPressed: () {},
-                ),
-              ],
-            ),
-          ),
+      body: _resolvedMasjidId == null
+          ? const Center(child: Text('Masjid belum dipilih'))
+          : StreamBuilder<List<DonasiEntity>>(
+              stream: _donasiStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          // List Donasi
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: dummyCampaigns.length,
-              itemBuilder: (context, index) {
-                final campaign = dummyCampaigns[index];
-                return GestureDetector(
-                  onTap: () {
-                    final resolvedMasjidId = masjidId ?? masjid?.id;
-                    // Jika diklik, arahkan ke halaman DonasiPage (form pembayaran QRIS)
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (BuildContext context) {
-                          return DonasiPage(masjidId: resolvedMasjidId);
-                        },
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+
+                final allDonasi = snapshot.data ?? [];
+                final filteredDonasi = allDonasi
+                    .where(
+                      (d) => d.title.toLowerCase().contains(
+                        _searchQuery.toLowerCase(),
                       ),
-                    );
-                  },
-                  child: Card(
-                    clipBehavior: Clip.antiAlias, // Sudah fix bebas eror
-                    margin: const EdgeInsets.only(bottom: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        // Bagian Teks (Kiri)
-                        Expanded(
-                          flex: 3,
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            color: Colors.grey.shade200,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  campaign['title'],
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
+                    )
+                    .toList();
+
+                return Column(
+                  children: [
+                    // Kolom Pencarian
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              onChanged: (value) {
+                                setState(() {
+                                  _searchQuery = value;
+                                });
+                              },
+                              decoration: InputDecoration(
+                                hintText: 'Cari Donasi',
+                                prefixIcon: const Icon(Icons.search),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Total   : Rp ${_formatCurrency(campaign['total'])}',
-                                  style: const TextStyle(fontSize: 12),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 0,
                                 ),
-                                Text(
-                                  'Target : Rp ${_formatCurrency(campaign['target'])}',
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              ],
+                              ),
                             ),
                           ),
-                        ),
-                        // Bagian Gambar (Kanan)
-                        Expanded(
-                          flex: 2,
-                          child: Image.network(
-                            campaign['image'],
-                            height: 100,
-                            fit: BoxFit.cover,
+                          const SizedBox(width: 10),
+                          IconButton(
+                            icon: const Icon(Icons.filter_list),
+                            onPressed: () {},
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+
+                    // List Donasi
+                    Expanded(
+                      child: filteredDonasi.isEmpty
+                          ? const Center(child: Text('Belum ada donasi'))
+                          : ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              itemCount: filteredDonasi.length,
+                              itemBuilder: (context, index) {
+                                final campaign = filteredDonasi[index];
+                                return GestureDetector(
+                                  onTap: () async {
+                                    final resolvedMasjidId =
+                                        widget.masjidId ?? widget.masjid?.id;
+                                    // Jika diklik, arahkan ke halaman DonasiPage (form pembayaran QRIS)
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (BuildContext context) {
+                                          return DonasiPage(
+                                            campaign: campaign,
+                                            masjidId: resolvedMasjidId,
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  },
+                                  child: Card(
+                                    clipBehavior:
+                                        Clip.antiAlias, // Sudah fix bebas eror
+                                    margin: const EdgeInsets.only(bottom: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        // Bagian Teks (Kiri)
+                                        Expanded(
+                                          flex: 3,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(16),
+                                            color: Colors.grey.shade200,
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  campaign.title,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 12),
+                                                Text(
+                                                  'Total   : Rp ${_formatCurrency(campaign.collectedAmount)}',
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  'Target : Rp ${_formatCurrency(campaign.targetAmount)}',
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        // Bagian Gambar (Kanan)
+                                        Expanded(
+                                          flex: 2,
+                                          child: _buildDonasiImage(
+                                            campaign.imageUrl,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
                 );
               },
             ),
-          ),
-        ],
-      ),
+    );
+  }
+
+  Widget _buildDonasiImage(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return Container(
+        height: 100,
+        color: Colors.grey.shade300,
+        child: Icon(Icons.image, color: Colors.grey.shade600),
+      );
+    }
+
+    return Image.network(
+      imageUrl,
+      height: 100,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          height: 100,
+          color: Colors.grey.shade300,
+          child: Icon(Icons.broken_image, color: Colors.grey.shade600),
+        );
+      },
     );
   }
 
