@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:sajadah/domain/entities/event/event.dart';
 import 'package:sajadah/common/enums/kategori_event.dart';
+import 'package:sajadah/common/widgets/profile_avatar.dart';
 
 class EventDetailPage extends StatelessWidget {
   final EventEntity event;
@@ -30,7 +31,16 @@ class EventDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(event.title)),
+      appBar: AppBar(
+        title: Text(event.title),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_none_outlined),
+          ),
+          const ProfileAvatar(),
+        ],
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

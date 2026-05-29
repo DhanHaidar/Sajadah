@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:sajadah/data/repository/auth/auth_repository_impl.dart';
 import 'package:sajadah/data/repository/donasi/donasi_repository_impl.dart';
 import 'package:sajadah/data/repository/event/event_repository_impl.dart';
+import 'package:sajadah/data/repository/laporan_kegiatan/laporan_kegiatan_repository_impl.dart';
 import 'package:sajadah/data/repository/jamaah/jamaah_repository_impl.dart';
 import 'package:sajadah/data/repository/masjid/masjid_repository_impl.dart';
 import 'package:sajadah/data/repository/payment/payment_impl.dart';
@@ -9,6 +10,7 @@ import 'package:sajadah/data/repository/payment/payment_impl.dart';
 import 'package:sajadah/data/sources/auth/auth_firebase_service.dart';
 import 'package:sajadah/data/sources/donasi/donasi_firebase_service.dart';
 import 'package:sajadah/data/sources/event/event_firebase_service.dart';
+import 'package:sajadah/data/sources/laporan_kegiatan/laporan_kegiatan_firebase_service.dart';
 import 'package:sajadah/data/sources/jamaah/jamaah_firebase_service.dart';
 import 'package:sajadah/data/sources/masjid/masjid_firebase_service.dart';
 import 'package:sajadah/data/sources/payment/payment_remote_source.dart';
@@ -16,6 +18,7 @@ import 'package:sajadah/data/sources/payment/payment_remote_source.dart';
 import 'package:sajadah/domain/repository/auth/auth.dart';
 import 'package:sajadah/domain/repository/donasi/donasi.dart';
 import 'package:sajadah/domain/repository/event/event.dart';
+import 'package:sajadah/domain/repository/laporan_kegiatan/laporan_kegiatan.dart';
 import 'package:sajadah/domain/repository/jamaah/jamaah.dart';
 import 'package:sajadah/domain/repository/masjid/masjid.dart';
 import 'package:sajadah/domain/repository/payment/payment.dart';
@@ -31,6 +34,7 @@ import 'package:sajadah/domain/usecases/event/create_event.dart';
 import 'package:sajadah/domain/usecases/event/get_news_events.dart';
 import 'package:sajadah/domain/usecases/event/get_events_by_masjid.dart';
 import 'package:sajadah/domain/usecases/event/create_event_for_masjid.dart';
+import 'package:sajadah/domain/usecases/laporan_kegiatan/create_laporan_kegiatan.dart';
 import 'package:sajadah/domain/usecases/jamaah/create_jamaah.dart';
 import 'package:sajadah/domain/usecases/jamaah/get_jamaah.dart';
 import 'package:sajadah/domain/usecases/jamaah/update_jamaah.dart';
@@ -45,6 +49,9 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<AuthFirebaseService>(AuthFirebaseServiceImpl());
   sl.registerSingleton<DonasiFirebaseService>(DonasiFirebaseServiceImpl());
   sl.registerSingleton<EventFirebaseService>(EventFirebaseServiceImpl());
+  sl.registerSingleton<LaporanKegiatanFirebaseService>(
+    LaporanKegiatanFirebaseServiceImpl(),
+  );
   sl.registerSingleton<MasjidFirebaseService>(MasjidFirebaseServiceImpl());
   sl.registerSingleton<JamaahFirebaseService>(JamaahFirebaseServiceImpl());
   sl.registerSingleton<PaymentRemoteSource>(PaymentRemoteSourceImpl());
@@ -52,6 +59,9 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<AuthRepository>(AuthRepositoryImpl());
   sl.registerSingleton<DonasiRepository>(DonasiRepositoryImpl());
   sl.registerSingleton<EventRepository>(EventRepositoryImpl());
+  sl.registerSingleton<LaporanKegiatanRepository>(
+    LaporanKegiatanRepositoryImpl(),
+  );
   sl.registerSingleton<MasjidRepository>(MasjidRepositoryImpl());
   sl.registerSingleton<JamaahRepository>(JamaahRepositoryImpl());
   sl.registerSingleton<PaymentRepository>(
@@ -65,6 +75,9 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<GetEventsByMasjidUseCase>(GetEventsByMasjidUseCase());
   sl.registerSingleton<CreateEventForMasjidUseCase>(
     CreateEventForMasjidUseCase(),
+  );
+  sl.registerSingleton<CreateLaporanKegiatanUseCase>(
+    CreateLaporanKegiatanUseCase(),
   );
   sl.registerSingleton<GetJamaahsByMasjidUseCase>(GetJamaahsByMasjidUseCase());
   sl.registerSingleton<UpdateJamaahUseCase>(UpdateJamaahUseCase());

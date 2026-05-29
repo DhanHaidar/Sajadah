@@ -7,6 +7,7 @@ import 'package:sajadah/common/enums/kategori_event.dart';
 import 'package:sajadah/domain/usecases/event/create_event.dart';
 import 'package:sajadah/domain/usecases/event/create_event_for_masjid.dart';
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/common/widgets/profile_avatar.dart';
 import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 
 class EventCreatePage extends StatefulWidget {
@@ -206,7 +207,16 @@ class _EventCreatePageState extends State<EventCreatePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.masjid?.title ?? 'Buat Event Baru')),
+      appBar: AppBar(
+        title: Text(widget.masjid?.title ?? 'Buat Event Baru'),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_none_outlined),
+          ),
+          const ProfileAvatar(),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(

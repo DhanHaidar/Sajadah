@@ -5,6 +5,8 @@ import 'package:sajadah/domain/usecases/donasi/watch_donasi_by_masjid.dart';
 import 'package:sajadah/presentation/donasi/pages/donasi_page.dart';
 import 'package:sajadah/presentation/donasi/pages/donasi_create_page.dart'; // Import halaman tambah donasi
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/common/widgets/profile_avatar.dart';
+import 'package:sajadah/common/widgets/app_drawer.dart';
 
 class DonasiListPage extends StatefulWidget {
   final String? masjidId;
@@ -43,28 +45,25 @@ class _DonasiListPageState extends State<DonasiListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: AppDrawer(masjid: widget.masjid),
       appBar: AppBar(
-        title: const Text('Donasi', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
+        shadowColor: Colors.black12,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+        title: const Text('Donasi', style: TextStyle(color: Colors.black)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_box, color: Colors.green, size: 30),
-            onPressed: () async {
-              final resolvedMasjidId = widget.masjidId ?? widget.masjid?.id;
-              // Navigasi ke halaman "Tambahkan Donasi" yang baru kita buat
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => DonasiCreatePage(
-                    masjid: widget.masjid,
-                    masjidId: resolvedMasjidId,
-                  ),
-                ),
-              );
-            },
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_none_outlined),
           ),
-          const SizedBox(width: 8),
+          const ProfileAvatar(),
         ],
       ),
       body: _resolvedMasjidId == null
@@ -119,6 +118,35 @@ class _DonasiListPageState extends State<DonasiListPage> {
                           IconButton(
                             icon: const Icon(Icons.filter_list),
                             onPressed: () {},
+                          ),
+                          const SizedBox(width: 8),
+                          SizedBox(
+                            height: 44,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                final resolvedMasjidId =
+                                    widget.masjidId ?? widget.masjid?.id;
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => DonasiCreatePage(
+                                      masjid: widget.masjid,
+                                      masjidId: resolvedMasjidId,
+                                    ),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                              ),
+                              child: const Icon(Icons.add, color: Colors.white),
+                            ),
                           ),
                         ],
                       ),

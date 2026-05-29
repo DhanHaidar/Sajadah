@@ -5,6 +5,7 @@ import 'package:sajadah/domain/usecases/jamaah/update_jamaah.dart';
 import 'package:sajadah/service_locator.dart';
 import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 import 'package:sajadah/common/enums/kategori_jamaah.dart';
+import 'package:sajadah/common/widgets/profile_avatar.dart';
 
 class JamaahCreatePage extends StatefulWidget {
   final String? masjidId;
@@ -137,6 +138,13 @@ class _JamaahCreatePageState extends State<JamaahCreatePage> {
         title: Text(
           widget.masjid?.title ?? (_isEdit ? 'Ubah Jamaah' : 'Buat Jamaah'),
         ),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_none_outlined),
+          ),
+          const ProfileAvatar(),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

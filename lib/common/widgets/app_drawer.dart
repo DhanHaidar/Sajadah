@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 import 'package:sajadah/common/widgets/bottom_nav_bar.dart';
+import 'package:sajadah/presentation/laporan_kegiatan/pages/laporan_kegiatan_page.dart';
 
 class AppDrawer extends StatelessWidget {
   final MasjidEntity? masjid;
@@ -85,6 +86,19 @@ class AppDrawer extends StatelessWidget {
               },
             ),
 
+            ListTile(
+              leading: const Icon(Icons.article_outlined),
+              title: const Text('Laporan Kegiatan'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => LaporanKegiatanPage(masjid: masjid),
+                  ),
+                );
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.people),
               title: const Text('Jamaah'),

@@ -7,6 +7,7 @@ import 'package:sajadah/presentation/events/pages/event_create_page.dart';
 import 'package:sajadah/presentation/events/pages/event_detail_page.dart';
 import 'package:sajadah/presentation/jamaah/pages/jamaah_page.dart';
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/common/widgets/profile_avatar.dart';
 
 class MasjidDetailPage extends StatefulWidget {
   final MasjidEntity masjid;
@@ -65,7 +66,16 @@ class _MasjidDetailPageState extends State<MasjidDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.masjid.title)),
+      appBar: AppBar(
+        title: Text(widget.masjid.title),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_none_outlined),
+          ),
+          const ProfileAvatar(),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

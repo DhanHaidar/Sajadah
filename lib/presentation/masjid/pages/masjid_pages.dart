@@ -4,6 +4,7 @@ import 'package:sajadah/domain/repository/auth/auth.dart';
 import 'package:sajadah/presentation/masjid/widget/news_masjid.dart';
 import 'package:sajadah/presentation/masjid/pages/masjid_create_page.dart';
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/common/widgets/profile_avatar.dart';
 import 'package:sajadah/common/auth/role_helper.dart';
 
 class MasjidPages extends StatelessWidget {
@@ -12,7 +13,16 @@ class MasjidPages extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("MasjidPages")),
+      appBar: AppBar(
+        title: const Text("MasjidPages"),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_none_outlined),
+          ),
+          const ProfileAvatar(),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         heroTag: null,
         onPressed: () async {

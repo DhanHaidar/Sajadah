@@ -9,6 +9,7 @@ import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 import 'package:sajadah/domain/repository/auth/auth.dart';
 import 'package:sajadah/presentation/keuangan/pages/transaksi_keuangan_page.dart';
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/presentation/profile/profile_page.dart';
 
 class KeuanganPage extends StatefulWidget {
   final MasjidEntity? masjid;
@@ -248,14 +249,20 @@ class _KeuanganPageState extends State<KeuanganPage> {
 
               return Padding(
                 padding: const EdgeInsets.only(right: 12),
-                child: CircleAvatar(
-                  radius: 15,
-                  backgroundColor: Colors.green,
-                  child: Text(
-                    initial,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
+                child: InkWell(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ProfilePage()),
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  child: CircleAvatar(
+                    radius: 15,
+                    backgroundColor: Colors.green,
+                    child: Text(
+                      initial,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
@@ -678,7 +685,10 @@ class _ChartCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          SizedBox(height: 240, child: _FinanceChart(summary: summary)),
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: _FinanceChart(summary: summary),
+          ),
         ],
       ),
     );
@@ -699,94 +709,112 @@ class _FinanceChart extends StatelessWidget {
             .fold<double>(0, math.max);
         final axisMax = maxValue <= 0 ? 1.0 : maxValue;
         final axisTicks = _buildAxisTicks(axisMax);
-        final chartHeight = math.max(160.0, constraints.maxHeight);
-        const axisWidth = 44.0;
+        const axisWidth = 36.0;
+        const chartGap = 6.0;
         const bottomLabelHeight = 36.0;
+        const bucketWidth = 56.0;
+        final chartHeight = constraints.maxHeight.isFinite
+            ? constraints.maxHeight
+            : 160.0;
+        final plotHeight = math.max(
+          0.0,
+          chartHeight - bottomLabelHeight - chartGap,
+        );
+        final chartAreaWidth = bucketWidth * summary.monthlyBuckets.length;
+        final chartViewportWidth = math.max(
+          0.0,
+          constraints.maxWidth - axisWidth - 8,
+        );
 
         return Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
               width: axisWidth,
-              height: chartHeight - bottomLabelHeight,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: axisTicks.reversed
-                    .map(
-                      (value) => Text(
-                        _axisLabel(value),
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey.shade500,
+              height: plotHeight,
+              child: Stack(
+                children: axisTicks.map((value) {
+                  final tickPosition =
+                      plotHeight -
+                      (plotHeight * (value / axisMax).clamp(0.0, 1.0));
+                  return Positioned(
+                    left: 0,
+                    right: 0,
+                    top: math.max(0.0, tickPosition - 7.0),
+                    child: SizedBox(
+                      height: 14,
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          _axisLabel(value),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey.shade500,
+                          ),
                         ),
                       ),
-                    )
-                    .toList(),
+                    ),
+                  );
+                }).toList(),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: chartHeight - bottomLabelHeight,
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: List.generate(
-                                5,
-                                (index) => Divider(
-                                  height: 1,
-                                  color: Colors.grey.shade200,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  width: math.max(chartViewportWidth, chartAreaWidth),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: plotHeight,
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: CustomPaint(
+                                painter: _FinanceLineChartPainter(
+                                  points: summary.monthlyBuckets
+                                      .map(
+                                        (bucket) => _ChartSeriesPoint(
+                                          income: bucket.income,
+                                          expense: bucket.expense,
+                                        ),
+                                      )
+                                      .toList(),
+                                  maxValue: axisMax,
+                                  gridTicks: axisTicks,
+                                  incomeColor: const Color(0xFF16A34A),
+                                  expenseColor: const Color(0xFFDC2626),
                                 ),
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                        Positioned.fill(
-                          child: CustomPaint(
-                            painter: _FinanceLineChartPainter(
-                              points: summary.monthlyBuckets
-                                  .map(
-                                    (bucket) => _ChartSeriesPoint(
-                                      income: bucket.income,
-                                      expense: bucket.expense,
-                                    ),
-                                  )
-                                  .toList(),
-                              maxValue: axisMax,
-                              incomeColor: const Color(0xFF16A34A),
-                              expenseColor: const Color(0xFFDC2626),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  SizedBox(
-                    height: bottomLabelHeight,
-                    child: Row(
-                      children: summary.monthlyBuckets.map((bucket) {
-                        return Expanded(
-                          child: Center(
-                            child: Text(
-                              bucket.label,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(height: chartGap),
+                      SizedBox(
+                        height: bottomLabelHeight,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: summary.monthlyBuckets.map((bucket) {
+                            return SizedBox(
+                              width: bucketWidth,
+                              child: Center(
+                                child: Text(
+                                  bucket.label,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ],
@@ -828,12 +856,14 @@ class _ChartSeriesPoint {
 class _FinanceLineChartPainter extends CustomPainter {
   final List<_ChartSeriesPoint> points;
   final double maxValue;
+  final List<double> gridTicks;
   final Color incomeColor;
   final Color expenseColor;
 
   _FinanceLineChartPainter({
     required this.points,
     required this.maxValue,
+    required this.gridTicks,
     required this.incomeColor,
     required this.expenseColor,
   });
@@ -862,10 +892,10 @@ class _FinanceLineChartPainter extends CustomPainter {
       ..color = Colors.grey.shade200
       ..strokeWidth = 1;
 
-    const rows = 4;
-    final stepY = size.height / rows;
-    for (var i = 1; i < rows; i++) {
-      final y = stepY * i;
+    final safeMax = maxValue <= 0 ? 1.0 : maxValue;
+    for (final tick in gridTicks) {
+      final ratio = (tick / safeMax).clamp(0.0, 1.0);
+      final y = size.height - (size.height * ratio);
       canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
     }
 
@@ -1156,8 +1186,8 @@ class _FinanceSummary {
     double incomeThisMonth = 0;
     double expenseThisMonth = 0;
 
-    final monthlyBuckets = List.generate(6, (index) {
-      final monthOffset = index - 5;
+    final monthlyBuckets = List.generate(12, (index) {
+      final monthOffset = index - 11;
       final month = DateTime(now.year, now.month + monthOffset, 1);
       final nextMonth = DateTime(month.year, month.month + 1, 1);
       return _MonthlyBucket(

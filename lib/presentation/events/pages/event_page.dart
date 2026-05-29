@@ -12,6 +12,7 @@ import 'package:sajadah/service_locator.dart';
 import 'package:sajadah/domain/usecases/masjid/get_news_masjid.dart';
 import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 import 'package:sajadah/common/widgets/app_drawer.dart';
+import 'package:sajadah/common/widgets/profile_avatar.dart';
 
 enum EventTimeFilter { all, today, thisWeek, thisMonth, upcoming, past }
 
@@ -156,7 +157,16 @@ class _EventsPageState extends State<EventsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: AppDrawer(masjid: widget.masjid),
-      appBar: AppBar(title: Text(widget.masjid?.title ?? 'Event masjid ')),
+      appBar: AppBar(
+        title: Text(widget.masjid?.title ?? 'Event masjid '),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_none_outlined),
+          ),
+          const ProfileAvatar(),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(

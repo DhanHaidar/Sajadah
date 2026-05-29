@@ -7,6 +7,7 @@ import 'package:sajadah/presentation/jamaah/pages/jamaah_create_page.dart';
 import 'package:sajadah/common/enums/kategori_jamaah.dart';
 import 'package:sajadah/domain/usecases/jamaah/delete_jamaah.dart';
 import 'package:sajadah/common/widgets/app_drawer.dart';
+import 'package:sajadah/common/widgets/profile_avatar.dart';
 
 class JamaahManagePage extends StatefulWidget {
   final String? masjidId;
@@ -57,7 +58,16 @@ class _JamaahManagePageState extends State<JamaahManagePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: AppDrawer(masjid: widget.masjid),
-      appBar: AppBar(title: Text(widget.masjid?.title ?? 'Kelola Jama\'ah')),
+      appBar: AppBar(
+        title: Text(widget.masjid?.title ?? 'Kelola Jama\'ah'),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_none_outlined),
+          ),
+          const ProfileAvatar(),
+        ],
+      ),
       body: FutureBuilder<List<JamaahEntity>>(
         future: _jamaahsFuture,
         builder: (context, snapshot) {

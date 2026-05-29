@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:sajadah/data/models/masjid/masjid_model.dart';
 import 'package:sajadah/domain/usecases/masjid/create_masjid.dart';
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/common/widgets/profile_avatar.dart';
 
 class MasjidCreatePage extends StatefulWidget {
   const MasjidCreatePage({super.key});
@@ -58,7 +59,8 @@ class _MasjidCreatePageState extends State<MasjidCreatePage> {
       // Buat MasjidModel
       final masjidModel = MasjidModel(
         title: _titleController.text,
-        location: _locationController.text, imageUrl: '',
+        location: _locationController.text,
+        imageUrl: '',
       );
 
       // Upload masjid dengan gambar
@@ -125,7 +127,16 @@ class _MasjidCreatePageState extends State<MasjidCreatePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Upload Masjid Baru')),
+      appBar: AppBar(
+        title: const Text('Upload Masjid Baru'),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_none_outlined),
+          ),
+          const ProfileAvatar(),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(

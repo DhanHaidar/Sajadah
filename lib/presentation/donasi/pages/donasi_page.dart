@@ -7,6 +7,7 @@ import 'package:sajadah/domain/entities/payment/payment.dart';
 import 'package:sajadah/domain/usecases/donasi/update_donasi_collected_amount.dart';
 import 'package:sajadah/presentation/donasi/bloc/payment_cubit.dart';
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/common/widgets/profile_avatar.dart';
 
 class DonasiPage extends StatelessWidget {
   final String? masjidId;
@@ -342,6 +343,13 @@ class _DonasiViewState extends State<DonasiView> {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_none_outlined),
+          ),
+          const ProfileAvatar(),
+        ],
       ),
       body: BlocConsumer<PaymentCubit, PaymentState>(
         listener: (context, state) async {

@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sajadah/common/widgets/app_drawer.dart';
+import 'package:sajadah/common/widgets/profile_avatar.dart';
 import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 import 'package:sajadah/domain/entities/payment/payment.dart';
 import 'package:sajadah/domain/repository/auth/auth.dart';
@@ -384,6 +385,13 @@ class _TransaksiKeuanganViewState extends State<TransaksiKeuanganView> {
           ),
         ),
         title: Text(widget.masjid?.title ?? 'Transaksi Keuangan'),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_none_outlined),
+          ),
+          const ProfileAvatar(),
+        ],
       ),
       body: BlocConsumer<PaymentCubit, PaymentState>(
         listener: (context, state) async {

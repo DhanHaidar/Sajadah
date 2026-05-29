@@ -9,6 +9,8 @@ import 'package:sajadah/domain/repository/auth/auth.dart';
 import 'package:sajadah/presentation/dashboard/widgets/news_events.dart';
 import 'package:sajadah/presentation/events/pages/event_page.dart';
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/presentation/profile/profile_page.dart';
+import 'package:sajadah/common/widgets/profile_avatar.dart';
 import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 
 class Dashboard extends StatelessWidget {
@@ -27,24 +29,11 @@ class Dashboard extends StatelessWidget {
         ),
         title: Text(masjid?.title ?? 'Dashboard'),
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.notifications)),
-          // show small avatar with user initial
-          StreamBuilder<DocumentSnapshot>(
-            stream: sl<AuthRepository>().getCurrentUserStream(),
-            builder: (context, snapshot) {
-              String initial = 'U';
-              if (snapshot.hasData && snapshot.data!.exists) {
-                final data = snapshot.data!.data() as Map<String, dynamic>?;
-                final name = data?['name'] as String?;
-                if (name != null && name.isNotEmpty)
-                  initial = name[0].toUpperCase();
-              }
-              return Padding(
-                padding: const EdgeInsets.only(right: 12.0),
-                child: CircleAvatar(child: Text(initial)),
-              );
-            },
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_none_outlined),
           ),
+          const ProfileAvatar(),
         ],
       ),
 

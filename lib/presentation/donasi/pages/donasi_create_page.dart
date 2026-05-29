@@ -7,6 +7,7 @@ import 'package:sajadah/data/models/donasi/donasi_model.dart';
 import 'package:sajadah/domain/entities/masjid/masjid_entity.dart';
 import 'package:sajadah/domain/usecases/donasi/create_donasi.dart';
 import 'package:sajadah/service_locator.dart';
+import 'package:sajadah/common/widgets/profile_avatar.dart';
 
 class DonasiCreatePage extends StatefulWidget {
   final MasjidEntity? masjid;
@@ -150,6 +151,13 @@ class _DonasiCreatePageState extends State<DonasiCreatePage> {
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),
         elevation: 0,
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_none_outlined),
+          ),
+          const ProfileAvatar(),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
